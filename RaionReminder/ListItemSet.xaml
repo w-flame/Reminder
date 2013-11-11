@@ -1,0 +1,55 @@
+﻿<UserControl x:Class="RaionReminder.ListItemSet"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:conv="clr-namespace:RaionReminder.Converters"
+             mc:Ignorable="d" x:Name="ListItemSetControl" Margin="0,2" Loaded="ListItemSetControl_Loaded">
+    <UserControl.Resources>
+        <conv:inBSRToSolidBrushConverter x:Key="inBSRToSolidBrushConverter" />
+    </UserControl.Resources>
+    
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20*" MinWidth="40" MaxWidth="60" />
+                <ColumnDefinition Width="80*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+        <Border BorderThickness="0,1" Grid.Column="1" >
+            <Border.BorderBrush>
+                <MultiBinding Converter="{StaticResource inBSRToSolidBrushConverter}">
+                    <Binding Path="inBSR" />
+                    <Binding Path="ReadyToPublish" />
+            		<Binding Path="canceled" />
+                </MultiBinding>
+            </Border.BorderBrush>
+            <Border.Background>
+                <MultiBinding Converter="{StaticResource inBSRToSolidBrushConverter}">
+                    <Binding Path="inBSR" />
+                    <Binding Path="ReadyToPublish" />
+            		<Binding Path="canceled" />
+                </MultiBinding>
+            </Border.Background>
+            <Grid Height="Auto" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Margin="0" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50*" />
+                    <RowDefinition Height="50*" />
+                </Grid.RowDefinitions>
+                <Label Content="{Binding CaseNumber}" Height="Auto" HorizontalAlignment="Center" Padding="0" Name="CaseNumberLabel" VerticalAlignment="Center" Width="Auto" Margin="0" FontSize="14" ToolTip="{Binding info}" />
+                <Label Content="{Binding JudgeName}" Height="Auto" HorizontalAlignment="Center" Padding="0" Name="JudgeLabel" VerticalAlignment="Center" Width="Auto" FontSize="12" Margin="6,0,0,0" Grid.Row="1" />
+            </Grid>
+        </Border>
+        <Border CornerRadius="8,0,0,8"   Background="#FFFFFFFF" Margin="4,0,0,0" BorderThickness="1,1,0,1" Padding="0,0,4,0">
+            <Border.BorderBrush>
+                <MultiBinding Converter="{StaticResource inBSRToSolidBrushConverter}">
+                    <Binding Path="inBSR" />
+                    <Binding Path="ReadyToPublish" />
+            		<Binding Path="canceled" />
+                </MultiBinding>
+            </Border.BorderBrush>    
+            <Label Content="{Binding DaysCount}" Height="Auto" HorizontalAlignment="Right" Name="DaysCountLabel" VerticalAlignment="Stretch" FontSize="24" Foreground="{Binding DaysCountColor}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="0" Margin="0" />
+            </Border>
+        </Grid>
+</UserControl>

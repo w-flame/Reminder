@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window
+	x:Class="RaionReminder.JudgeCommentForListWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Height="300"
+	Width="360"
+	SizeToContent="Height"
+	ResizeMode="NoResize"
+	ShowInTaskbar="False"
+	Topmost="True"
+	Title="Комментарий судьи"
+	WindowStyle="ToolWindow"
+	WindowStartupLocation="CenterOwner">
+	<Grid
+		Margin="6">
+		<Grid.RowDefinitions>
+			<RowDefinition
+				Height="Auto" />
+			<RowDefinition
+				Height="Auto" />
+			<RowDefinition
+				Height="Auto" />
+			<RowDefinition
+				Height="Auto" />
+		</Grid.RowDefinitions>
+		<TextBlock
+			Text="Комментарий судьи"
+			Grid.Row="0" />
+		<TextBox
+			Name="ReasonText"
+			Grid.Row="1"
+			Margin="0,4,0,4" />
+		<Grid
+			Grid.Row="2">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition
+					Width="auto" />
+				<ColumnDefinition
+					Width="*" />
+			</Grid.ColumnDefinitions>
+			<CheckBox
+				Name="DontShow"
+				Grid.Column="0"
+				VerticalAlignment="Center"
+				Margin="0,0,4,0" />
+			<TextBlock
+				Grid.Column="1"
+				Margin="0,0,0,4"
+				VerticalAlignment="Center"
+				Text="Исключать все последующие без ввода комментария" />
+		</Grid>
+		<Button
+			Grid.Row="3"
+			Content="Исключить"
+			HorizontalAlignment="Right"
+			Grid.Column="1"
+			Name="Exclude"
+			Click="Exclude_Click" />
+		<Grid.ColumnDefinitions></Grid.ColumnDefinitions>
+	</Grid>
+</Window>

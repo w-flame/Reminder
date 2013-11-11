@@ -1,0 +1,84 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="RaionReminder.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="MainWindowX" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="MainWindowY" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="MainWindowWidth" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="MainWindowHeight" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="LaunchMinimized" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="BSRURL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">http://192.168.0.254:8079/</Value>
+    </Setting>
+    <Setting Name="FirstLaunch" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="bsrBase" Type="System.String" Scope="User">
+      <Value Profile="(Default)">GAS</Value>
+    </Setting>
+    <Setting Name="bsrPass" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="bsrUser" Type="System.String" Scope="User">
+      <Value Profile="(Default)">BSR</Value>
+    </Setting>
+    <Setting Name="exclBase" Type="System.String" Scope="User">
+      <Value Profile="(Default)">!#EXCLBASE#!</Value>
+    </Setting>
+    <Setting Name="exclPass" Type="System.String" Scope="User">
+      <Value Profile="(Default)">!#EXCLPASS#!</Value>
+    </Setting>
+    <Setting Name="exclUser" Type="System.String" Scope="User">
+      <Value Profile="(Default)">!#EXCLUSER#!</Value>
+    </Setting>
+    <Setting Name="JudgeGroups" Type="System.Collections.ObjectModel.ObservableCollection&lt;JudgeGroup&gt;" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="scan_days" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">180</Value>
+    </Setting>
+    <Setting Name="sdpBase" Type="System.String" Scope="User">
+      <Value Profile="(Default)">192.168.0.254:C:\DATA\JUSTICE\UNI_WORK2003.GDB</Value>
+    </Setting>
+    <Setting Name="sdpPass" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="sdpUser" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SYSDBA</Value>
+    </Setting>
+    <Setting Name="FirstGrAfterConsideration" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ShowCanceledCivil" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="AutoExcludeCanceledCivil" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="DenyOnlyInBSR" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ShowDaysAfterConsideration" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="useLocalSettings" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="pub_days" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">30</Value>
+    </Setting>
+    <Setting Name="FirstAdmAfterConsideration" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window
+	x:Class="RaionReminder.ListWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:throbber="clr-namespace:RaionReminder.Throbber" xmlns:conv="clr-namespace:RaionReminder.Converters" xmlns:utils="clr-namespace:RaionReminder.utils"
+	Title="Состояние дел, рассмотренных за период"
+	Height="444"
+	Width="827"
+	Loaded="Window_Loaded"
+	MinWidth="855"
+	MinHeight="200">
+	<Grid>
+		<Grid.Resources>
+			<conv:DateToStringConverter
+				x:Key="DateToStringConverter" />
+			<conv:DateTimeToStringConverter
+				x:Key="DateTimeToStringConverter" />
+		<conv:PublicationIntervalToString x:Key="PublicationIntervalToString" />
+		</Grid.Resources>
+		<Grid.RowDefinitions>
+			<RowDefinition
+				Height="Auto" />
+			<RowDefinition
+				Height="*" />
+			<RowDefinition
+				Height="Auto" />
+		</Grid.RowDefinitions>
+		<StackPanel
+			Height="24"
+			Orientation="Horizontal"
+			Margin="4">
+			<Label
+				Content="Вид"
+				Height="28"
+				Name="label1" />
+			<ComboBox
+				Name="vidpr"
+				Width="120"
+				SelectionChanged="vidpr_SelectionChanged"
+				DisplayMemberPath="header"
+				SelectedValuePath="value" />
+			<Label
+				Content="Этап"
+				Height="28"
+				Name="label2" />
+			<ComboBox
+				Name="stage"
+				Width="120"
+				DisplayMemberPath="header"
+				SelectedValuePath="value" />
+			<Label
+				Content="Дата рассмотрения с"
+				Height="28"
+				Name="label3" />
+			<DatePicker
+				Name="dateFrom" />
+			<Label
+				Content="до"
+				Height="28"
+				Name="label4" />
+			<DatePicker
+				Name="dateTo" />
+			<Button
+				Content="Выбрать"
+				Name="refreshButton"
+				Width="75"
+				Margin="8,0,0,0"
+				Click="refreshButton_Click" />
+			<Button
+				Name="toExcelButton"
+				Width="75"
+				Margin="4,0,0,0"
+				Click="toExcelButton_Click"
+				IsEnabled="False">
+				<Button.Content>
+					<StackPanel
+						Orientation="Horizontal">
+						<Image
+							Source="/Reminder;component/images/excel.png"
+							Stretch="None"
+							Margin="0,0,4,0" />
+						<TextBlock
+							Text="в Excel" />
+					</StackPanel>
+				</Button.Content>
+			</Button>
+		</StackPanel>
+		<TabControl
+			Grid.Row="1"
+			Name="tabControl1"
+			Margin="4">
+			<TabItem
+				Header="Не опубликованные">
+				<Grid>
+					<ListView utils:GridViewSort.AutoSort="True"
+						Name="notPublishedList">
+						<ListView.View>
+							<GridView>
+								<GridView.ColumnHeaderTemplate>
+									<DataTemplate DataType="GridViewColoumn">
+									<Grid>
+										<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="14" />
+										<ColumnDefinition Width="*" />
+										</Grid.ColumnDefinitions>
+										<TextBlock  Name="HC" Text="{Binding}" Grid.Column="1" />
+										</Grid>
+									</DataTemplate>
+								</GridView.ColumnHeaderTemplate>
+								<GridViewColumn
+									Header="Номер"
+									DisplayMemberBinding="{Binding number}"
+									utils:GridViewSort.PropertyName="number"
+									Width="100" >
+
+								</GridViewColumn>
+								<GridViewColumn
+									Header="Дата рассмотрения"
+									DisplayMemberBinding="{Binding date, Converter={StaticResource DateToStringConverter}}"
+									utils:GridViewSort.PropertyName="date"
+									Width="120" />
+								<GridViewColumn
+									Header="Дата вступления в законную силу"
+									DisplayMemberBinding="{Binding validityDate, Converter={StaticResource DateToStringConverter}}"
+									utils:GridViewSort.PropertyName="validityDate"
+									Width="120" />
+								<GridViewColumn
+									Header="Судья"
+									DisplayMemberBinding="{Binding Judge}"
+									utils:GridViewSort.PropertyName="Judge"
+									Width="100" />
+								<GridViewColumn
+									Header="Комментарий"
+									DisplayMemberBinding="{Binding info}"
+									utils:GridViewSort.PropertyName="info"
+									Width="250" />
+								<GridViewColumn
+									Header="Статус"
+									DisplayMemberBinding="{Binding docStatus}"
+									utils:GridViewSort.PropertyName="docStatus"
+									Width="100" />
+							</GridView>
+						</ListView.View>
+					</ListView>
+				</Grid>
+			</TabItem>
+			<TabItem
+				Header="Опубликованные">
+				<Grid>
+                    <ListView utils:GridViewSort.AutoSort="True"
+						Name="PublishedList">
+						<ListView.View>
+							<GridView>
+                                <GridView.ColumnHeaderTemplate>
+                                    <DataTemplate DataType="GridViewColoumn">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="14" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock  Name="HC" Text="{Binding}" Grid.Column="1" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridView.ColumnHeaderTemplate>
+                                <GridViewColumn
+									Header="Номер"
+									DisplayMemberBinding="{Binding number}"
+                                    utils:GridViewSort.PropertyName="number"
+									Width="100" />
+								<GridViewColumn
+									Header="Дата рассмотрения"
+									DisplayMemberBinding="{Binding date, Converter={StaticResource DateToStringConverter}}"
+									utils:GridViewSort.PropertyName="SignificantDate"
+                                    Width="120" />
+								<GridViewColumn
+									Header="Дата вступления в законную силу"
+									DisplayMemberBinding="{Binding validityDate, Converter={StaticResource DateToStringConverter}}"
+									utils:GridViewSort.PropertyName="SignificantDate"
+                                    Width="120" />
+								<GridViewColumn
+									Header="Дата публикации"
+									DisplayMemberBinding="{Binding pubDate, Converter={StaticResource DateTimeToStringConverter}}"
+									utils:GridViewSort.PropertyName="pubDate"
+                                    Width="120" />
+                                <GridViewColumn
+									Header="Срок публикации"
+									DisplayMemberBinding="{Binding PublicationLength, Converter={StaticResource PublicationIntervalToString}}"
+									utils:GridViewSort.PropertyName="PublicationLength"
+                                    Width="120" />
+								<GridViewColumn
+									Header="Судья"
+									DisplayMemberBinding="{Binding Judge}"
+                                    utils:GridViewSort.PropertyName="Judge"
+									Width="100" />
+								<GridViewColumn
+									Header="Комментарий"
+									DisplayMemberBinding="{Binding comment}"
+                                    utils:GridViewSort.PropertyName="comment"
+									Width="300" />
+							</GridView>
+						</ListView.View>
+					</ListView>
+				</Grid>
+			</TabItem>
+			<TabItem
+				Header="Публикация запрещена">
+				<Grid>
+                    <ListView utils:GridViewSort.AutoSort="True"
+						Name="ExcludedList">
+						<ListView.View>
+							<GridView>
+                                <GridView.ColumnHeaderTemplate>
+                                    <DataTemplate DataType="GridViewColoumn">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="14" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock  Name="HC" Text="{Binding}" Grid.Column="1" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridView.ColumnHeaderTemplate>
+								<GridViewColumn
+									Header="Номер"
+									DisplayMemberBinding="{Binding number}"
+                                    utils:GridViewSort.PropertyName="number"
+									Width="100" />
+								<GridViewColumn
+									Header="Дата рассмотрения"
+									DisplayMemberBinding="{Binding date, Converter={StaticResource DateToStringConverter}}"
+                                    utils:GridViewSort.PropertyName="date"
+									Width="120" />
+								<GridViewColumn
+									Header="Судья"
+									DisplayMemberBinding="{Binding Judge}"
+                                    utils:GridViewSort.PropertyName="Judge"
+									Width="100" />
+								<GridViewColumn
+									Header="Причина исключения"
+									DisplayMemberBinding="{Binding reason}"
+                                    utils:GridViewSort.PropertyName="reason"
+									Width="300" />
+								<GridViewColumn
+									Header="Кто исключил"
+									DisplayMemberBinding="{Binding whoExcluded}"
+                                    utils:GridViewSort.PropertyName="whoExcluded"
+									Width="120" />
+                                <GridViewColumn
+									Header="Статус"
+									DisplayMemberBinding="{Binding docStatus}"
+									utils:GridViewSort.PropertyName="docStatus"
+									Width="100" />
+							</GridView>
+						</ListView.View>
+					</ListView>
+				</Grid>
+			</TabItem>
+		</TabControl>
+		<ComboBox
+			Name="JudgeFilter"
+			Grid.Row="1"
+			HorizontalAlignment="Right"
+			VerticalAlignment="Top"
+			Height="20"
+			Margin="0,0,4,0"
+			Width="200"
+			SelectionChanged="JudgeFilter_SelectionChanged" />
+		<StatusBar
+			Grid.Row="2">
+			<StatusBarItem
+				Name="statusText"
+				Content="Рассмотрено: 0; Опубликовано 0; Исключено 0; Ожидает публикации: 0" />
+            <Button Content="Общая статистика за период" Name="ShowSummary" Click="ShowSummary_Click" />
+		</StatusBar>
+		<throbber:ThrobberControl
+			x:Name="loadingThrobber"
+			Grid.Row="0"
+			Grid.RowSpan="3"
+			Tooltip="Загрузка"
+			Color="#FFA7B6CC"
+			Background="#AAFFFFFF"
+			Visibility="Collapsed" />
+		<Grid
+			Name="exportProgressPanel"
+			Grid.Row="0"
+			Grid.RowSpan="3"
+			Background="#AAFFFFFF"
+			Visibility="Collapsed">
+			<ProgressBar
+				Name="exportProgress"
+				Width="300"
+				Height="20"
+				Maximum="100" />
+		</Grid>
+	</Grid>
+</Window>

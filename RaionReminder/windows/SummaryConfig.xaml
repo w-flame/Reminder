@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window
+	x:Class="RaionReminder.SummaryConfig" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="Общая информация за период"
+	Height="300"
+	Width="400"
+	SizeToContent="Height"
+	WindowStartupLocation="CenterOwner"
+	WindowStyle="ToolWindow"
+	ResizeMode="NoResize">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition
+				Height="Auto" />
+			<RowDefinition
+				Height="Auto" />
+			<RowDefinition
+				Height="Auto" />
+			<RowDefinition
+				Height="Auto" />
+			<RowDefinition
+				Height="Auto" />
+		</Grid.RowDefinitions>
+		<TextBlock
+			HorizontalAlignment="Stretch"
+			Text="Выберите способ расчёта локально установленного срока"
+			VerticalAlignment="Top"
+			Padding="4"
+			FontWeight="Bold" />
+		<RadioButton
+			Grid.Row="1"
+			HorizontalAlignment="Stretch"
+			Name="FirstMode"
+			VerticalAlignment="Stretch"
+			Margin="4">
+			<StackPanel
+				Orientation="Vertical">
+				<TextBlock
+					TextWrapping="Wrap"
+					FontWeight="Bold">с момента, предусмотренного Законом</TextBlock>
+				<TextBlock
+					TextWrapping="Wrap"
+					Foreground="#FF828282">
+                Для уголовных дел 1-й инстанции (а также апелляции районных судов) срок считается с момента вступления в законную силу. Для всех остальных инстанций и этапов - со дня рассмотрения.
+            </TextBlock>
+			</StackPanel>
+		</RadioButton>
+		<RadioButton
+			Grid.Row="2"
+			HorizontalAlignment="Stretch"
+			Name="SecondMode"
+			VerticalAlignment="Stretch"
+			Margin="4">
+			<StackPanel
+				Orientation="Vertical">
+				<TextBlock
+					TextWrapping="Wrap"
+					FontWeight="Bold">с даты вступления в законную силу</TextBlock>
+				<TextBlock
+					TextWrapping="Wrap"
+					Foreground="#FF828282">
+                Для уголовных, гражданских и административных дел 1-й инстанции (а также апелляции районных судов) срок считается с момента вступления в законную силу. Для всех остальных инстанций и этапов - со дня рассмотрения.
+            </TextBlock>
+			</StackPanel>
+		</RadioButton>
+		
+		<StackPanel Grid.Row="3">
+		<CheckBox
+			Name="UseMaterialsCB"
+			
+			Margin="4">Включить в отчёт производство по материалам</CheckBox>
+		<CheckBox
+			Name="ShowCanceledCivilCB"
+			Margin="4">Включить в отчёт возвращенные материалы (9-)</CheckBox>
+		<CheckBox
+			Name="ShowLateCasesCB"
+			Margin="4">Вывести на отдельный лист просроченные дела</CheckBox>
+		</StackPanel>
+
+		<Button
+			Content="OK"
+			Grid.Row="4"
+			Height="23"
+			HorizontalAlignment="Right"
+			Name="OKButton"
+			VerticalAlignment="Top"
+			Width="75"
+			Margin="0,4,4,4"
+			IsDefault="True"
+			Click="OKButton_Click" />
+	</Grid>
+</Window>

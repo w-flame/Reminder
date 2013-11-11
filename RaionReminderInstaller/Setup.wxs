@@ -1,0 +1,289 @@
+﻿<?xml version="1.0"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" 
+     xmlns:util="http://schemas.microsoft.com/wix/NetFxExtension"
+     xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+	<?define ProductName="Контроль публикации решений. Версия 1.6.2" ?>
+	<?define StartMenuName="Контроль публикации решений." ?>
+	<?define ProductVersion="1.6.2.0" ?>
+	<?define UpgradeCode="D889F7C7-63F0-410F-B563-74C5C5FA6A66"?>
+	<?define Manufacturer="Николай Гуляев 2012-2013"?>
+	
+	
+	<Product Id="*"
+	    Codepage="1251"
+		Name="$(var.ProductName)"
+		Language="1049"
+		Version="$(var.ProductVersion)"
+		UpgradeCode="$(var.UpgradeCode)"
+		Manufacturer="$(var.Manufacturer)">
+		
+		
+		
+		<Package Description="Программа установки"
+			Comments="Программа для контроля опубликования рассмотренных дел в районных и областных судах общей юрисдикции"
+			InstallerVersion="200"
+		    SummaryCodepage="1251"
+			Languages="1049"
+			Compressed="yes"/>
+			
+		<!--
+			Source media for the installation. 
+ 			Specifies a single cab file to be embedded in the installer's .msi. 
+		-->
+		<Media Id="1" Cabinet="contents.cab" EmbedCab="yes" CompressionLevel="high"/>
+		
+		<Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
+		<Upgrade Id="$(var.UpgradeCode)">  
+		   <UpgradeVersion
+		      Minimum="1.0.0.0" Maximum="1.6.1.1"
+		      Property="PREVIOUSVERSIONSINSTALLED"
+		      IncludeMinimum="yes" IncludeMaximum="yes" />
+		</Upgrade> 
+		
+		
+		
+		<PropertyRef Id="NETFRAMEWORK20"/>
+	    <Condition Message="Для работы установщика требуется .NET Framework 2.0">
+	        <![CDATA[Installed OR NETFRAMEWORK20]]>
+	    </Condition>
+		
+		<Property Id="DBAPPPATH"><![CDATA[C:\Data\]]></Property>  
+		<Property Id="ALLUSERS">1</Property>
+		<Property Id="DBPATH">192.168.0.254:C:\DATA\Reminder\CONTROLINFO.FDB</Property>
+		<Property Id="DBLOGIN">SYSDBA</Property>
+		<Property Id="DBPASS">m</Property>
+		<Property Id="DBUSE">1</Property>
+		<Property Id="DBUPDATE"></Property>
+		<Property Id="USEOLDSETTINGS">#1</Property>
+		<Property Id="OLDCONFIGFILE">
+			<RegistrySearch Id="getConfigPath" Root="HKLM" Key="Software\RaionReminder" Name="ConfigPath" Type="file">
+				<FileSearch Id="FSss" Name="Reminder.exe.config" />
+			</RegistrySearch>
+		</Property>
+
+		<Binary Id="MyActions" SourceFile="..\MyCustomAction\bin\Release\RaionReminderInstallerCustomActions.CA.dll" />
+		<CustomAction Id="CheckConnectionAction" BinaryKey="MyActions" DllEntry="CheckDBConnection" Execute="immediate" Return="check"/>
+		
+		<CustomAction Id="UpdateDBActionData" Property="UpdateDBAction" Value="DBPATH=[DBPATH];DBLOGIN=[DBLOGIN];DBPASS=[DBPASS]" Execute="immediate" Return="check" />
+		<CustomAction Id="UpdateSettingsActionData" Property="UpdateSettingsAction" Value="DBPATH=[DBPATH];DBLOGIN=[DBLOGIN];DBPASS=[DBPASS];DBUSE=[DBUSE];CONFFILE=[#Reminder.exe.config]" Execute="immediate" Return="check" />
+		
+		<CustomAction Id="LoadOldSettings" BinaryKey="MyActions" DllEntry="GetDBSettings" Execute="immediate" Return="ignore" />
+		<CustomAction Id="UpdateDBAction" BinaryKey="MyActions" DllEntry="UpdateDB" Execute="deferred" Return="check" Impersonate="no"	 />
+		<CustomAction Id="UpdateSettingsAction" BinaryKey="MyActions" DllEntry="SaveDBSettings" Execute="deferred" Return="check" Impersonate="no"	 />
+		
+		<InstallUISequence>
+			<Custom Action="LoadOldSettings" After="CostFinalize">USEOLDSETTINGS AND OLDCONFIGFILE</Custom>
+		</InstallUISequence>
+		
+		<InstallExecuteSequence>
+		    <RemoveExistingProducts After="InstallInitialize" />
+			<Custom Action="WixCloseApplications" Before="InstallValidate" />
+			<Custom Action="UpdateSettingsActionData" Before="UpdateSettingsAction"><![CDATA[(&ClientFeature = 3 AND !ClientFeature <> 3)]]></Custom>
+			<Custom Action="UpdateSettingsAction" After="InstallFiles"><![CDATA[(&ClientFeature = 3 AND !ClientFeature <> 3)]]></Custom>
+			<Custom Action="UpdateDBActionData" Before="UpdateDBAction"><![CDATA[DBUPDATE  AND (&ClientFeature = 3 AND !ClientFeature <> 3)]]></Custom>
+			<Custom Action="UpdateDBAction" Before="InstallFinalize"><![CDATA[DBUPDATE  AND (&ClientFeature = 3 AND !ClientFeature <> 3)]]></Custom>
+		</InstallExecuteSequence>
+		
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder" Name="PFiles">
+				<Directory Id="INSTALLDIR" Name="ReminderRaion">
+					<Component Id="Client" Guid="51F7FE39-00E9-4774-8C64-EBBB50F4F6F7" DiskId="1">
+						<File Id="LicenseFile" Name="license.rtf" Source="license.rtf" />
+						<File Id="FirebirdSql.Data.FirebirdClient.dll" Name="FirebirdSql.Data.FirebirdClient.dll" Source="..\RaionReminder\bin\Release\FirebirdSql.Data.FirebirdClient.dll" />
+						<File Id="Hardcodet.Wpf.TaskbarNotification.dll" Name="Hardcodet.Wpf.TaskbarNotification.dll" Source="..\RaionReminder\bin\Release\Hardcodet.Wpf.TaskbarNotification.dll" />
+						<File Id="Hardcodet.Wpf.TaskbarNotification.xml" Name="Hardcodet.Wpf.TaskbarNotification.xml" Source="..\RaionReminder\bin\Release\Hardcodet.Wpf.TaskbarNotification.xml" />
+						<File Id="NumericUpDownControl.dll" Name="NumericUpDownControl.dll" Source="..\RaionReminder\bin\Release\NumericUpDownControl.dll" />
+						<File Id="Reminder.exe" Name="Reminder.exe" Source="..\RaionReminder\bin\Release\Reminder.exe" KeyPath="yes">
+							<Shortcut Advertise="yes" Directory="ApplicationProgramsFolder" Name="$(var.ProductName)" Id="StartShort" Icon="icon.ico">
+								<Icon Id="icon.ico" SourceFile="..\RaionReminder\bin\Release\Reminder.exe" />
+							</Shortcut>
+							<Shortcut Advertise="yes" Directory="DesktopFolder" Name="$(var.ProductName)" Id="DescktopShort" />
+						</File>
+						<File Id="Reminder.exe.config" Name="Reminder.exe.config" Source="..\RaionReminder\bin\Release\Reminder.exe.config" />
+						<File Id="Microsoft.Office.Interop.Excel.dll" Name="Microsoft.Office.Interop.Excel.dll" Source="..\RaionReminder\bin\Release\Microsoft.Office.Interop.Excel.dll" />
+						<File Id="AgoraIDChecker.exe" Name="AgoraIDChecker.exe" Source="..\AgoraIDChecker\bin\Release\AgoraIDChecker.exe">
+							<Shortcut Id="AgoraCheckShort" Directory="ApplicationProgramsFolder" Advertise="yes" Name="Синхронизация идентификаторов" />
+						</File>
+						<File Id="AgoraIDChecker.exe.config" Name="AgoraIDChecker.exe.config" Source="..\AgoraIDChecker\bin\Release\AgoraIDChecker.exe.config" />
+						<RegistryKey Action="createAndRemoveOnUninstall" Root="HKLM" Key="Software\RaionReminder">
+							<RegistryValue Action="write" Type="string" Value="[#Reminder.exe.config]" Name="ConfigPath" Id="ConfigPathKey" />
+						</RegistryKey>
+						<RemoveFolder Id="RemoveStartMenuFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
+						<File Id="admin_manual" Name="Руководство администратора.doc" Source="Руководство администратора.doc" />
+						<File Id="help.chm" Name="help.chm" Source="..\RaionReminder\bin\Release\help.chm" />
+					</Component>
+				</Directory>
+				<Directory Id="ProgramMenuFolder">
+					<Directory Id="ApplicationProgramsFolder" Name="$(var.StartMenuName)" />
+				</Directory>
+				<Directory Id="DesktopFolder" Name="Desktop" />
+				<Directory Id="DBAPPPATH">
+					<Directory Name="Reminder" Id="DataFolder">
+						<Component Id="DBComponent" Guid="BFE0950C-2C04-4A48-8C49-EAFD0B29224B" DiskId="1">
+							<File Id="CONTROLINFO.FDB" Name="CONTROLINFO.FDB" Source="..\RaionReminder\db\CONTROLINFO.FDB" />
+						</Component>
+					</Directory>
+				</Directory>
+			</Directory>
+		</Directory>
+		
+		<Feature Id="ClientFeature"
+		         Title="Клиент"
+		         Description="Устанавливайте клиент на компьютеры пользователей"
+		         Level="1"
+		         ConfigurableDirectory="INSTALLDIR">
+		         <ComponentRef Id="Client"/>
+		</Feature>
+		
+		<Feature Id="Database"
+		         Title="База данных"
+		         Description="Предназначена для хранения списка исключенных дел. Устанавливать на сервере, где есть Firebird (Главная машина в самый раз). Установится в папку C:\DATA\Reminder"
+		         Level="1000"
+			     AllowAdvertise="no"
+				 Absent="allow" 
+				 ConfigurableDirectory="DBAPPPATH"
+		         >
+		         <ComponentRef Id="DBComponent"/>
+		</Feature>
+		
+		<!-- 
+			Using the Wix UI library
+ 
+			With the the WixUI_FeatureTree dialog set the user goes 
+			directly from the license agreement dialog to the feature 
+			customization dialog. This dialog set is useful
+			when your product installs all features by default. 
+		-->
+		<!--<UIRef Id="WixUI_FeatureTree"/>-->
+		
+	<UI Id="WixUI_FeatureTree">
+		
+			<TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+            <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+            <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+
+            <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+            <Property Id="WixUI_Mode" Value="FeatureTree" />
+
+            <DialogRef Id="ErrorDlg" />
+            <DialogRef Id="FatalError" />
+            <DialogRef Id="FilesInUse" />
+            <DialogRef Id="MsiRMFilesInUse" />
+            <DialogRef Id="PrepareDlg" />
+            <DialogRef Id="ProgressDlg" />
+            <DialogRef Id="ResumeDlg" />
+            <DialogRef Id="UserExit" />
+		
+			<Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+
+            <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">NOT Installed</Publish>
+            <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
+
+            <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+            <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="MyCustomizeDlg">LicenseAccepted = "1"</Publish>
+
+            <Publish Dialog="MyCustomizeDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="1">Installed</Publish>
+            <Publish Dialog="MyCustomizeDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" Order="2">NOT Installed</Publish>
+            <Publish Dialog="MyCustomizeDlg" Control="Next" Event="NewDialog" Value="DBSetup" Order="1"><![CDATA[(&ClientFeature = 3 AND !ClientFeature <> 3)]]></Publish>
+			<Publish Dialog="MyCustomizeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="3"><![CDATA[NOT (&ClientFeature = 3 AND !ClientFeature <> 3)]]></Publish>
+		
+			<Publish Dialog="DBSetup" Control="Back" Event="NewDialog" Value="MyCustomizeDlg">1</Publish>
+            <Publish Dialog="DBSetup" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+		
+			<!-- Для совместимости -->
+			<Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="1">Installed</Publish>
+            <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" Order="2">NOT Installed</Publish>
+            <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+			<!-- конец -->
+		
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="DBSetup" Order="1"><![CDATA[(&ClientFeature = 3 AND !ClientFeature <> 3) AND (NOT Installed OR WixUI_InstallMode = "Change")]]></Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MyCustomizeDlg" Order="1"><![CDATA[NOT (&ClientFeature = 3 AND !ClientFeature <> 3) AND (NOT Installed OR WixUI_InstallMode = "Change")]]></Publish>
+		
+			<Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed AND NOT PATCH</Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="3">Installed AND PATCH</Publish>
+
+            <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+
+            <Publish Dialog="MaintenanceTypeDlg" Control="ChangeButton" Event="NewDialog" Value="MyCustomizeDlg">1</Publish>
+            <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+            <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+            <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+			
+			<Dialog Id="MyCustomizeDlg" Width="370" Height="270" Title="!(loc.CustomizeDlg_Title)" TrackDiskSpace="yes">
+                <Control Id="Tree" Type="SelectionTree" X="25" Y="85" Width="175" Height="115" Property="_BrowseProperty" Sunken="yes" TabSkip="no" Text="!(loc.CustomizeDlgTree)" />
+                <Control Id="Browse" Type="PushButton" X="294" Y="210" Width="66" Height="17" Text="!(loc.CustomizeDlgBrowse)">
+                    <Publish Event="SelectionBrowse" Value="BrowseDlg">1</Publish>
+                    <Condition Action="hide">Installed</Condition>
+                    <Condition Action="disable">Installed</Condition>
+                </Control>
+                <Control Id="Reset" Type="PushButton" X="10" Y="243" Width="81" Height="17" Text="!(loc.CustomizeDlgReset)">
+                    <Publish Event="Reset" Value="0">1</Publish>
+                    <Subscribe Event="SelectionNoItems" Attribute="Enabled" />
+                </Control>
+                <Control Id="DiskCost" Type="PushButton" X="91" Y="243" Width="100" Height="17" Text="!(loc.CustomizeDlgDiskCost)">
+                    <Publish Event="SpawnDialog" Value="DiskCostDlg">1</Publish>
+                    <Subscribe Event="SelectionNoItems" Attribute="Enabled" />
+                </Control>
+                <Control Id="Back" Type="PushButton" X="192" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
+                <Control Id="Next" Type="PushButton" X="248" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
+                    <Subscribe Event="SelectionNoItems" Attribute="Enabled" />
+                </Control>
+                <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+                    <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+                </Control>
+                <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.CustomizeDlgBannerBitmap)" />
+                <Control Id="Text" Type="Text" X="25" Y="55" Width="320" Height="20" Text="!(loc.CustomizeDlgText)" />
+                <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+                <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+                <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.CustomizeDlgDescription)" />
+                <Control Id="Title" Type="Text" X="15" Y="6" Width="210" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.CustomizeDlgTitle)" />
+                <Control Id="Box" Type="GroupBox" X="210" Y="81" Width="150" Height="118" />
+                <Control Id="ItemDescription" Type="Text" X="215" Y="90" Width="131" Height="50" Text="!(loc.CustomizeDlgItemDescription)">
+                    <Subscribe Event="SelectionDescription" Attribute="Text" />
+                </Control>
+                <Control Id="ItemSize" Type="Text" X="215" Y="140" Width="131" Height="50" Text="!(loc.CustomizeDlgItemSize)">
+                    <Subscribe Event="SelectionSize" Attribute="Text" />
+                </Control>
+                <Control Id="Location" Type="Text" X="90" Y="210" Width="200" Height="20" Text="!(loc.CustomizeDlgLocation)">
+                    <Subscribe Event="SelectionPath" Attribute="Text" />
+                    <Subscribe Event="SelectionPathOn" Attribute="Visible" />
+                    <Condition Action="hide">Installed</Condition>
+                </Control>
+                <Control Id="LocationLabel" Type="Text" X="25" Y="210" Width="65" Height="10" Text="!(loc.CustomizeDlgLocationLabel)">
+                    <Subscribe Event="SelectionPathOn" Attribute="Visible" />
+                    <Condition Action="hide">Installed</Condition>
+                </Control>
+            </Dialog>
+
+			<Dialog Id="DBSetup" Width="370" Height="270" Title="Служебная база данных">
+				<Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)"></Control>
+				<Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+					<Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+				</Control>
+				<Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="2" />
+				<Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.CustomizeDlgBannerBitmap)" />
+				<Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
+				<Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="2" />
+				<Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Здесь можно ввести настройки подключения к служебной базе данных" />
+				<Control Id="Title" Type="Text" X="15" Y="6" Width="210" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Служебная база данных" />
+				<Control Id="DBUseCB" Property="DBUSE" CheckBoxValue="1" Type="CheckBox" Height="18" Width="177" X="9" Y="188" Text="Использовать настройки из БД" />
+				<Control Id="DBPassTB" Password="yes" Property="DBPASS" Type="Edit" Height="15" Width="75" X="64" Y="134" />
+				<Control Id="label3" Type="Text" Height="13" Width="75" X="64" Y="119" Text="Пароль" />
+				<Control Id="DBLoginTB" Property="DBLOGIN" Type="Edit" Height="15" Width="75" X="64" Y="102" />
+				<Control Id="label2" Type="Text" Height="11" Width="75" X="64" Y="88" Text="Логин" />
+				<Control Id="label1" Type="Text" Height="11" Width="101" X="64" Y="58" Text="Путь к базе данных" />
+				<Control Id="DBPathTB" Property="DBPATH" Type="Edit" Height="15" Width="200" X="64" Y="71" />
+				<Control Id="DBUpdateCB" Property="DBUPDATE" Type="CheckBox" CheckBoxValue="1" Height="18" Width="263" X="9" Y="210" Text="Добавить в БД таблицу с настройками (если не существует)" />
+				<Control Id="CheckButton" Type="PushButton" Height="17" Width="121" X="64" Y="154" Text="Проверить соединение" >
+					<Publish Event="DoAction" Value="CheckConnectionAction">1</Publish>
+				</Control>
+			</Dialog>
+		
+            
+
+            
+        </UI>
+		
+		<UIRef Id="WixUI_Common" />
+	</Product>
+</Wix>

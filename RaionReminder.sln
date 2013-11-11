@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+# SharpDevelop 4.2.2.8818
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaionReminder", "RaionReminder\RaionReminder.csproj", "{434E92FF-9035-4111-82DD-708DE36B13B6}"
+EndProject
+Project("{CFEE4113-1246-4D54-95CB-156813CB8593}") = "RaionReminderInstaller", "RaionReminderInstaller\RaionReminderInstaller.wixproj", "{F5CD0207-4AF4-4404-B453-9B03D9D1F395}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaionReminderInstallerCustomActions", "MyCustomAction\RaionReminderInstallerCustomActions.csproj", "{B7AF9993-2C2E-4C03-98F2-109A8B6557BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgoraIDChecker", "AgoraIDChecker\AgoraIDChecker.csproj", "{D01545D2-0701-43B1-BC9B-CBCBBEA009CD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{434E92FF-9035-4111-82DD-708DE36B13B6}.Debug|x86.Build.0 = Debug|x86
+		{434E92FF-9035-4111-82DD-708DE36B13B6}.Debug|x86.ActiveCfg = Debug|x86
+		{434E92FF-9035-4111-82DD-708DE36B13B6}.Debug|Any CPU.Build.0 = Debug|x86
+		{434E92FF-9035-4111-82DD-708DE36B13B6}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{434E92FF-9035-4111-82DD-708DE36B13B6}.Release|x86.Build.0 = Release|x86
+		{434E92FF-9035-4111-82DD-708DE36B13B6}.Release|x86.ActiveCfg = Release|x86
+		{434E92FF-9035-4111-82DD-708DE36B13B6}.Release|Any CPU.Build.0 = Release|x86
+		{434E92FF-9035-4111-82DD-708DE36B13B6}.Release|Any CPU.ActiveCfg = Release|x86
+		{F5CD0207-4AF4-4404-B453-9B03D9D1F395}.Debug|x86.Build.0 = Debug|x86
+		{F5CD0207-4AF4-4404-B453-9B03D9D1F395}.Debug|x86.ActiveCfg = Debug|x86
+		{F5CD0207-4AF4-4404-B453-9B03D9D1F395}.Debug|Any CPU.Build.0 = Debug|x86
+		{F5CD0207-4AF4-4404-B453-9B03D9D1F395}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{F5CD0207-4AF4-4404-B453-9B03D9D1F395}.Release|x86.Build.0 = Release|x86
+		{F5CD0207-4AF4-4404-B453-9B03D9D1F395}.Release|x86.ActiveCfg = Release|x86
+		{F5CD0207-4AF4-4404-B453-9B03D9D1F395}.Release|Any CPU.Build.0 = Release|x86
+		{F5CD0207-4AF4-4404-B453-9B03D9D1F395}.Release|Any CPU.ActiveCfg = Release|x86
+		{B7AF9993-2C2E-4C03-98F2-109A8B6557BE}.Debug|x86.Build.0 = Debug|Any CPU
+		{B7AF9993-2C2E-4C03-98F2-109A8B6557BE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B7AF9993-2C2E-4C03-98F2-109A8B6557BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7AF9993-2C2E-4C03-98F2-109A8B6557BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7AF9993-2C2E-4C03-98F2-109A8B6557BE}.Release|x86.Build.0 = Release|Any CPU
+		{B7AF9993-2C2E-4C03-98F2-109A8B6557BE}.Release|x86.ActiveCfg = Release|Any CPU
+		{B7AF9993-2C2E-4C03-98F2-109A8B6557BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7AF9993-2C2E-4C03-98F2-109A8B6557BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D01545D2-0701-43B1-BC9B-CBCBBEA009CD}.Debug|x86.Build.0 = Debug|x86
+		{D01545D2-0701-43B1-BC9B-CBCBBEA009CD}.Debug|x86.ActiveCfg = Debug|x86
+		{D01545D2-0701-43B1-BC9B-CBCBBEA009CD}.Debug|Any CPU.Build.0 = Debug|x86
+		{D01545D2-0701-43B1-BC9B-CBCBBEA009CD}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{D01545D2-0701-43B1-BC9B-CBCBBEA009CD}.Release|x86.Build.0 = Release|x86
+		{D01545D2-0701-43B1-BC9B-CBCBBEA009CD}.Release|x86.ActiveCfg = Release|x86
+		{D01545D2-0701-43B1-BC9B-CBCBBEA009CD}.Release|Any CPU.Build.0 = Release|x86
+		{D01545D2-0701-43B1-BC9B-CBCBBEA009CD}.Release|Any CPU.ActiveCfg = Release|x86
+	EndGlobalSection
+EndGlobal

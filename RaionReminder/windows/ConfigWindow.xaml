@@ -1,0 +1,406 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window
+	x:Class="RaionReminder.ConfigWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:converters="clr-namespace:RaionReminder.Converters" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:cmds="clr-namespace:RaionReminder.Commands" xmlns:nb="clr-namespace:NumericUpDownControl;assembly=NumericUpDownControl"
+	Title="Настройка"
+	ResizeMode="NoResize"
+	ShowInTaskbar="False"
+	WindowStartupLocation="CenterOwner"
+	WindowStyle="ToolWindow"
+	Topmost="True"
+	Loaded="Window_Loaded"
+	SizeToContent="WidthAndHeight"
+	Closed="Window_Closed"
+	Closing="Window_Closing">
+	<Window.Resources>
+		<converters:NotEnabled
+			x:Key="NotEnabledConverter" />
+		<converters:NotConverter
+			x:Key="NotConverter" />
+		<converters:BooleanToHiddenVisibility
+			x:Key="BooleanToHidden" />
+	</Window.Resources>
+	<Window.CommandBindings>
+		<CommandBinding
+			Command="cmds:Commands.DeletePassword"
+			Executed="DeletePassword_Executed" />
+		<CommandBinding
+			Command="cmds:Commands.CheckConnection"
+			Executed="CheckConnection_Executed"
+			CanExecute="CheckConnection_CanExecute" />
+	</Window.CommandBindings>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition
+				Height="Auto" />
+			<RowDefinition
+				Height="Auto" />
+		</Grid.RowDefinitions>
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition
+					Width="340" />
+				<ColumnDefinition
+					Width="Auto" />
+			</Grid.ColumnDefinitions>
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition
+						Height="*"
+						MinHeight="250" />
+					<RowDefinition
+						Height="Auto" />
+					<RowDefinition
+						Height="Auto" />
+				</Grid.RowDefinitions>
+				<GroupBox
+					Header="Группы судей"
+					Name="groupBox1"
+					Width="Auto"
+					Margin="4,4,4,0">
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition
+								Height="auto" />
+							<RowDefinition
+								Height="auto" />
+							<RowDefinition
+								Height="*" />
+						</Grid.RowDefinitions>
+						<ComboBox
+							Grid.Row="0"
+							Height="23"
+							HorizontalAlignment="Stretch"
+							Margin="4,4,30,0"
+							Name="GroupsList"
+							VerticalAlignment="Top"
+							SelectedIndex="0"
+							IsEnabled="True">
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock
+										Text="{Binding name}" />
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+						<Button
+							Height="23"
+							Grid.Row="0"
+							HorizontalAlignment="Right"
+							Margin="0,4,4,0"
+							Name="RefreshGroupsButton"
+							VerticalAlignment="Top"
+							Width="Auto"
+							Style="{StaticResource RefreshButton}"
+							Click="RefreshGroupsButton_Click" />
+						<Grid
+							Grid.Row="1"
+							Height="24"
+							HorizontalAlignment="Stretch"
+							Margin="4,4,4,0"
+							Name="grid1"
+							VerticalAlignment="Top"
+							Width="Auto">
+							<Grid.Resources>
+								<converters:ItemSelectedToEnabled
+									x:Key="SelectedToEnabled" />
+								<converters:CountAndEnabledConverter
+									x:Key="CountToEnabled" />
+							</Grid.Resources>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition
+									Width="50*" />
+								<ColumnDefinition
+									Width="50*" />
+							</Grid.ColumnDefinitions>
+							<Button
+								Height="23"
+								HorizontalAlignment="Stretch"
+								Name="AddGroupButton"
+								VerticalAlignment="Top"
+								Width="Auto"
+								Margin="0,0,2,0"
+								Click="AddGroupButton_Click">
+								<Button.IsEnabled>
+									<MultiBinding
+										Converter="{StaticResource CountToEnabled}"
+										UpdateSourceTrigger="PropertyChanged">
+										<Binding
+											Path="HasItems"
+											ElementName="GroupsList" />
+										<Binding
+											Path="IsEnabled"
+											ElementName="GroupsList" />
+									</MultiBinding>
+								</Button.IsEnabled>
+								<StackPanel
+									Orientation="Horizontal">
+									<Image
+										Source="/Reminder;component/images/arrow_down.png" />
+									<Label
+										Content="Добавить"
+										Padding="0" />
+								</StackPanel>
+							</Button>
+							<Button
+								Height="23"
+								HorizontalAlignment="Stretch"
+								Margin="2,0,0,0"
+								Name="RemoveGroupButton"
+								VerticalAlignment="Top"
+								Width="Auto"
+								Grid.Column="1"
+								IsEnabled="{Binding SelectedIndex,ElementName=MyGroupsList,Converter={StaticResource SelectedToEnabled}}"
+								Click="RemoveGroupButton_Click">
+								<StackPanel
+									Orientation="Horizontal">
+									<Image
+										Source="/Reminder;component/images/arrow_up.png" />
+									<Label
+										Content="Убрать"
+										Padding="0" />
+								</StackPanel>
+							</Button>
+						</Grid>
+						<ListBox
+							Grid.Row="2"
+							ItemsSource="{Binding JudgeGroups}"
+							HorizontalAlignment="Stretch"
+							Margin="4"
+							Width="Auto"
+							IsTextSearchEnabled="False"
+							Name="MyGroupsList"
+							MaxHeight="600">
+							<ListBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock
+										Text="{Binding name}" />
+								</DataTemplate>
+							</ListBox.ItemTemplate>
+						</ListBox>
+					</Grid>
+				</GroupBox>
+				<CheckBox
+					Grid.Row="1"
+					Margin="14,2"
+					IsChecked="{Binding LaunchMinimized}">Сворачиваться в значок после старта</CheckBox>
+				<Button
+					Name="ShowExpertPanel"
+					Grid.Row="2"
+					Content="Режим эксперта"
+					HorizontalAlignment="Right"
+					Margin="4"
+					Visibility="{Binding AdminMode, Converter={StaticResource BooleanToHidden}}"
+					Click="ShowExpertPanel_Click" />
+			</Grid>
+			<StackPanel
+				Grid.Column="1"
+				Width="340"
+				Name="ExpertSettingsPanel"
+				Visibility="Collapsed">
+				<GroupBox
+					Header="Режим работы"
+					Margin="4,4,4,0">
+					<StackPanel>
+						<RadioButton
+							Name="useDBSettings"
+							Foreground="#FF446292"
+							Checked="useDBSettings_Checked">Загружать настройки из БД</RadioButton>
+						<RadioButton
+							Margin="0,4,0,0"
+							Name="useLocalSettings"
+							Checked="useLocalSettings_Checked">Использовать локальные настройки</RadioButton>
+					</StackPanel>
+				</GroupBox>
+				<GroupBox
+					Header="Настройки баз данных"
+					Margin="4,4,4,0">
+					<TabControl
+						Padding="0">
+						<TabItem
+							Background="AliceBlue"
+							Foreground="#FF446292"
+							Header="База программы">
+							<Border
+								Padding="4"
+								Background="AliceBlue">
+								<StackPanel>
+									<Label
+										Content="База данных (server/port:path)" />
+									<TextBox
+										Name="ExclBase"
+										Text="{Binding exclBase}" />
+									<Label
+										Content="Имя пользователя" />
+									<TextBox
+										Name="ExclName"
+										Text="{Binding exclUser}" />
+									<Label
+										Content="Пароль" />
+									<PasswordBox
+										Name="ExclPass"
+										PasswordChanged="ParameterChanged" />
+									<Button
+										Content="Удалить пароль"
+										HorizontalAlignment="Right"
+										Style="{StaticResource LinkButton}"
+										Command="cmds:Commands.DeletePassword"
+										CommandParameter="My"
+										IsEnabled="{Binding Path=IsEnabled,ElementName=ExclPass,Converter={StaticResource NotEnabledConverter}}" />
+									<Button
+										Content="Проверить соединение"
+										Command="cmds:Commands.CheckConnection"
+										CommandParameter="My" />
+									<Button
+										Name="LoadDBSettings"
+										Content="Загрузить настройки из БД"
+										Margin="0,6,0,0"
+										Click="LoadDBSettings_Click" />
+								</StackPanel>
+							</Border>
+						</TabItem>
+						<TabItem
+							Header="БСР">
+							<Border
+								Padding="4">
+								<StackPanel>
+									<Label
+										Content="База данных" />
+									<TextBox
+										Name="BsrBase"
+										Text="{Binding bsrBase}" />
+									<Label
+										Content="Имя пользователя" />
+									<TextBox
+										Name="BsrName"
+										Text="{Binding bsrUser}" />
+									<Label
+										Content="Пароль" />
+									<PasswordBox
+										Name="BsrPass"
+										PasswordChanged="ParameterChanged" />
+									<Button
+										Content="Удалить пароль"
+										HorizontalAlignment="Right"
+										Style="{StaticResource LinkButton}"
+										Command="cmds:Commands.DeletePassword"
+										CommandParameter="BSR"
+										IsEnabled="{Binding Path=IsEnabled,ElementName=BsrPass,Converter={StaticResource NotEnabledConverter}}" />
+									<Button
+										Content="Проверить соединение"
+										Command="cmds:Commands.CheckConnection"
+										CommandParameter="BSR" />
+								</StackPanel>
+							</Border>
+						</TabItem>
+					</TabControl>
+				</GroupBox>
+				<GroupBox
+					Header="Адрес БСР-web"
+					Margin="4,4,4,0"
+					Padding="4">
+					<TextBox
+						Name="bsrUrl"
+						Text="{Binding BSRURL}" />
+				</GroupBox>
+				<GroupBox
+					Margin="4,4,4,0"
+					Padding="4"
+					HorizontalContentAlignment="Right"
+					Header="Количество дней для поиска решений">
+					<nb:NumericBox
+						Minimum="1"
+						Maximum="36500"
+						Value="{Binding scan_days}"
+						Width="100"
+						BorderBrush="Transparent"
+						Name="scanDays"
+						HorizontalAlignment="Right" />
+				</GroupBox>
+				<GroupBox
+					Margin="4,4,4,0"
+					Padding="4"
+					HorizontalContentAlignment="Right"
+					Header="Количество дней на публикацию">
+					<nb:NumericBox
+						Minimum="1"
+						Maximum="36500"
+						Value="{Binding pub_days}"
+						Width="100"
+						BorderBrush="Transparent"
+						Name="pubDays"
+						HorizontalAlignment="Right" />
+				</GroupBox>
+				<GroupBox
+					Header="Настройки приложения"
+					Margin="4,4,4,0"
+					Padding="4">
+					<StackPanel>
+						<CheckBox
+							Margin="0,2"
+							Name="FirstGRAfterValidityDate"
+							IsChecked="{Binding FirstGrAfterConsideration,Converter={StaticResource NotConverter}}">
+							<TextBlock
+								TextWrapping="Wrap">Публиковать гражданские дела только после вступления в законную силу</TextBlock>
+						</CheckBox>
+                        <CheckBox
+							Margin="0,2"
+							Name="FirstAdmAfterValidityDate"
+							IsChecked="{Binding FirstAdmAfterConsideration,Converter={StaticResource NotConverter}}">
+                            <TextBlock
+								TextWrapping="Wrap">Публиковать административные дела только после вступления в законную силу</TextBlock>
+                        </CheckBox>
+                        <CheckBox
+							Name="ShowCanceledCivil"
+							Margin="0,2"
+							IsChecked="{Binding ShowCanceledCivil}">
+							<TextBlock
+								TextWrapping="Wrap">Включить в выборку материалы по гражданским делам (9- и М-)</TextBlock>
+						</CheckBox>
+						<CheckBox
+							Margin="0,2"
+							IsEnabled="{Binding ElementName=ShowCanceledCivil, Path=IsChecked}"
+							IsChecked="{Binding AutoExcludeCanceledCivil}">
+							<TextBlock
+								TextWrapping="Wrap">Автоматически исключать дела 9- и М- с причиной "Не рассматривалось по существу"</TextBlock>
+						</CheckBox>
+						<CheckBox
+							Margin="0,2"
+							IsChecked="{Binding DenyOnlyInBSR}">Исключать дела только после загрузки в БСР</CheckBox>
+						<CheckBox
+							Margin="0,2"
+							IsChecked="{Binding ShowDaysAfterConsideration}">
+							<TextBlock
+								TextWrapping="Wrap">Показывать количество дней, прошедших после вынесения решения, вместо оставшегося срока</TextBlock>
+						</CheckBox>
+						<Button
+							Content="Сбросить на настройки по умолчанию"
+							Name="ResetSettings"
+							Click="ResetSettings_Click" />
+					</StackPanel>
+				</GroupBox>
+			</StackPanel>
+		</Grid>
+		<StackPanel
+			Grid.Row="1"
+			Orientation="Horizontal"
+			FlowDirection="RightToLeft"
+			Margin="4,4,4,0"
+			VerticalAlignment="Bottom"
+			HorizontalAlignment="Right">
+			<Button
+				Content="Закрыть"
+				Height="23"
+				Name="CancelButton"
+				Width="75"
+				Margin="4,4,0,4"
+				IsCancel="True" />
+			<Button
+				IsEnabled="False"
+				Content="Применить"
+				Height="23"
+				Name="SaveButton"
+				Margin="4"
+				Click="SaveButton_Click" />
+		</StackPanel>
+	</Grid>
+</Window>

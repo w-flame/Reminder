@@ -1,0 +1,670 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    >
+
+    <ControlTemplate x:Key="ListView" TargetType="ListBox">
+        <Border Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" Name="Bd" Padding="0" SnapsToDevicePixels="True">
+            <ScrollViewer Focusable="False" Padding="0, 4">
+                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
+            </ScrollViewer>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="UIElement.IsEnabled" Value="False">
+                <Setter Property="Border.Background" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />
+            </Trigger>
+            <Trigger Property="ItemsControl.IsGrouping" Value="True">
+                <Setter Property="ScrollViewer.CanContentScroll" Value="False" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style x:Key="SetupStackButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="0,4,4,0" BorderThickness="0,1,1,1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Reminder;component/images/wrench.png" Stretch="None" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <Style x:Key="ShowExclusions" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="0" BorderThickness="0,1,1,1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Reminder;component/images/excluded.png" Stretch="None" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+	
+	<Style x:Key="ExportExcelStackButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="0" BorderThickness="0,1,1,1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Reminder;component/images/excel.png" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" TargetName="ButtonBorder" Value="#FFCCCCCC" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+	
+    <Style x:Key="ShowListStackButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="0" BorderThickness="0,1,1,1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Reminder;component/images/list.png" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" TargetName="ButtonBorder" Value="#FFCCCCCC" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="OpenClentStackButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="0" BorderThickness="0,1,1,1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Reminder;component/images/bsr16.png" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" TargetName="ButtonBorder" Value="#FFCCCCCC" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="OpenSiteStackButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="0" BorderThickness="0,1,1,1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Reminder;component/images/upload.png" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" TargetName="ButtonBorder" Value="#FFCCCCCC" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="DenyStackButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="0" BorderThickness="0,1,1,1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Reminder;component/images/page.png" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" TargetName="ButtonBorder" Value="#FFCCCCCC" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="HelpStackButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="0" BorderThickness="1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Reminder;component/images/help.png" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" TargetName="ButtonBorder" Value="#FFCCCCCC" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+     <Style x:Key="RefreshStackButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="4,0,0,4" BorderThickness="1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Reminder;component/images/arrow_refresh.png" Stretch="None" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" TargetName="ButtonBorder" Value="#FFCCCCCC" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        </Style>
+  
+    <Style x:Key="RefreshButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="4" BorderThickness="1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Reminder;component/images/arrow_refresh.png" Stretch="None" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="TextButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="4" BorderThickness="1" BorderBrush="#FFA7B6CC" Padding="2" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="AliceBlue"  Offset="0"/>
+                                                <GradientStop Color="#FFC9DEFF" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" TargetName="ButtonBorder">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStopCollection>
+                                                <GradientStop Color="#FFC9DEFF"  Offset="0"/>
+                                                <GradientStop Color="#FFA7B6CC" Offset="0.8" />
+                                                <GradientStop Color="#FFA7B6CC" Offset="1"/>
+                                            </GradientStopCollection>
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="LinkButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <TextBlock>
+                        <Underline><ContentPresenter Margin="0"  /></Underline>
+                    </TextBlock>
+                    
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="DarkRed" />
+                                
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="Gray" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="TextBlock.Foreground" Value="Blue" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+    <Style x:Key="FlashingTextButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="4" BorderThickness="1" BorderBrush="#FFA7B6CC" Padding="4" Name="ButtonBorder">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="AliceBlue" Offset="0"/>
+                                <GradientStop Color="Snow" Offset="0.2" />
+                                <GradientStop Color="AliceBlue" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <EventTrigger RoutedEvent="Loaded" >
+                            <BeginStoryboard>
+                                <Storyboard  AutoReverse="True" RepeatBehavior="Forever">
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="Background.GradientStops[0].Color" To="Yellow" Duration="0:0:2" />
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="Background.GradientStops[1].Color" To="YellowGreen" Duration="0:0:2" />
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="Background.GradientStops[2].Color" To="Yellow" Duration="0:0:2" />
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="BorderBrush.Color" To="Orange" Duration="0:0:2" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                        <EventTrigger RoutedEvent="MouseEnter">
+                            <BeginStoryboard>
+                                <Storyboard  AutoReverse="True" RepeatBehavior="Forever">
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="Background.GradientStops[0].Color" From="AliceBlue" To="Yellow" Duration="0:0:0.5" />
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="Background.GradientStops[1].Color" From="Snow" To="YellowGreen" Duration="0:0:0.5" />
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="Background.GradientStops[2].Color" From="AliceBlue" To="Yellow" Duration="0:0:0.5" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                        <EventTrigger RoutedEvent="MouseLeave" >
+                            <BeginStoryboard>
+                                <Storyboard  AutoReverse="True" RepeatBehavior="Forever">
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="Background.GradientStops[0].Color" From="AliceBlue" To="Yellow" Duration="0:0:2" />
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="Background.GradientStops[1].Color" From="Snow" To="YellowGreen" Duration="0:0:2" />
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="Background.GradientStops[2].Color" From="AliceBlue" To="Yellow" Duration="0:0:2" />
+                                    <ColorAnimation BeginTime="00:00:00" Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="BorderBrush.Color" To="Orange" Duration="0:0:2" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

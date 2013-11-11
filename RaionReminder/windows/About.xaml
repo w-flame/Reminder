@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window
+	x:Class="RaionReminder.About" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="О программе"
+	Height="247"
+	Width="437"
+	Loaded="Window_Loaded"
+	Topmost="True"
+	WindowStyle="ToolWindow" ShowInTaskbar="False"
+	Language="ru-ru"
+	WindowStartupLocation="CenterOwner" SizeToContent="Height">
+    <Grid VerticalAlignment="Top">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Label Content="Контроль публикации" Height="28" Name="name_and_version" FontSize="14" />
+        <FlowDocumentScrollViewer Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+        <FlowDocument FontSize="12" FontFamily="Arial" PagePadding="4">
+
+            <Paragraph Margin="0,0,0,2">
+                <Bold>Гуляев Николай 2012 г</Bold>
+                <Hyperlink NavigateUri="mailto:nick.gulyaev@gmail.com" RequestNavigate="Hyperlink_RequestNavigate">nick.gulyaev@gmail.com</Hyperlink>
+            </Paragraph>
+            <Paragraph Margin="0,0,0,2">
+                <Run>В программе использованы следующие компоненты:</Run>
+            </Paragraph>
+            <List Margin="0,0,0,2">
+                <ListItem>
+                    <Paragraph>
+                        <Bold>WPF NotifyIcon </Bold>
+                        <Hyperlink NavigateUri="http://www.codeproject.com/Articles/36468/WPF-NotifyIcon" RequestNavigate="Hyperlink_RequestNavigate">http://www.codeproject.com/Articles/36468/WPF-NotifyIcon</Hyperlink>
+                        <Run>)</Run>
+                    </Paragraph>
+                </ListItem>
+            </List>
+        	<Paragraph>Помощь в тестировании и написании документации: <Bold>Келус Евгений Александрович</Bold></Paragraph>
+            <Paragraph>Графика:</Paragraph>
+            <List Margin="0,0,0,2">
+                <ListItem>
+                    <Paragraph>
+
+                        <Bold>Mark James</Bold> (
+                        <Hyperlink NavigateUri="http://famfamfam.com" RequestNavigate="Hyperlink_RequestNavigate">http://famfamfam.com</Hyperlink>
+                        )
+                    </Paragraph>
+                </ListItem>
+                <ListItem>
+                    <Paragraph>
+                        <Bold>Dat Nguyen</Bold> (
+                        <Hyperlink NavigateUri="http://splashyfish.com/" RequestNavigate="Hyperlink_RequestNavigate">http://splashyfish.com/</Hyperlink>
+                        ) 
+                    </Paragraph>
+                </ListItem>
+                <ListItem>
+                    <Paragraph>
+                        <Bold>Oliver Scholtz</Bold>
+                    </Paragraph>
+                </ListItem>
+            </List>
+        </FlowDocument>
+    </FlowDocumentScrollViewer>
+    </Grid>
+</Window>

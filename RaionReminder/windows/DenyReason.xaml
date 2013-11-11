@@ -1,0 +1,64 @@
+﻿<Window x:Class="RaionReminder.DenyReason"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:RaionReminder.Converters"
+        Title="Запретить публикацию" ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" d:DesignHeight="183" d:DesignWidth="302" SizeToContent="WidthAndHeight" Loaded="Window_Loaded">
+    <Window.Resources>
+        <Style x:Key="WrongTextField" TargetType="{x:Type ComboBox}">
+                <Setter Property="BorderBrush" Value="#ff446292" />
+                <Style.Triggers>
+                    <Trigger Property="SelectedIndex" Value="0">
+                        <Trigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation Storyboard.TargetProperty="BorderBrush.Color" Duration="0:0:0.25" From="#ff446292" To="Red" RepeatBehavior="4x" AutoReverse="True"/>
+                                <ColorAnimation Storyboard.TargetProperty="Background.Color" Duration="0:0:0.5" From="White" To="Red" RepeatBehavior="2x" AutoReverse="True"/>
+                            </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.EnterActions>
+                    </Trigger>
+                </Style.Triggers>
+        </Style>
+    </Window.Resources>    
+    <Grid Margin="0" Name="grid1" Width="250">
+        <Grid.Resources>
+            <converters:ItemsCountToEnabled x:Key="ItemsCountToEnabled" />
+    		<converters:DenyReasonToVisibility x:Key="DenyReasonToVisibility" />
+        </Grid.Resources>
+            <Grid.Background>
+            <RadialGradientBrush Center="0.5,0.5" GradientOrigin="1,1" RadiusX="1" SpreadMethod="Pad" MappingMode="RelativeToBoundingBox" RadiusY="1">
+                <GradientStop Color="White" Offset="0.2" />
+                <GradientStop Color="#FFC9DEFF" Offset="0.85" />
+            </RadialGradientBrush>
+        </Grid.Background>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="100" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+    			<RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+        <TextBlock Name="DescriptionText" Text="Если Вы действительно хотите запретить публикацию дела #CASENUM# рассмотренного/вступившего в зак. силу судьей #JUDGE# #DATE#, то введите причину такого запрета в поле ниже" TextWrapping="Wrap" FontSize="12" Padding="6" />    
+        	<ComboBox Height="23" Margin="6,6,6,0" Name="Reason" Grid.Row="1" SelectedIndex="0">
+        		<ComboBox.Items>
+                <ComboBoxItem Content="Выберите причину запрета" />
+                <ComboBoxItem Content="Затрагивающие безопасность государства" />
+        		<ComboBoxItem Content="Возникающие из семейно-правовых отношений, в том числе по делам об усыновлении (удочерении) ребенка, другим делам, затрагивающим права и законные интересы несовершеннолетних" />
+        		<ComboBoxItem Content="О преступлениях против половой неприкосновенности и половой свободы личности" />
+        		<ComboBoxItem Content="Об ограничении дееспособности гражданина или о признании его недееспособным" />
+        		<ComboBoxItem Content="О принудительной госпитализации гражданина в психиатрический стационар и принудительном психиатрическом освидетельствовании" />
+        		<ComboBoxItem Content="О внесении исправлений или изменений в запись актов гражданского состояния" />
+        		<ComboBoxItem Content="Об установлении фактов, имеющих юридическое значение" />
+        		<ComboBoxItem Content="По решению судьи" />
+                <ComboBoxItem Content="Закрытое судебное заседание" />
+        		<ComboBoxItem Content="Дело не рассматривалось по существу" />
+        		<ComboBoxItem Content="Объединенное дело" />
+        		</ComboBox.Items>
+        	</ComboBox>
+    	<StackPanel Margin="6,6,6,0" Visibility="{Binding SelectedIndex, ElementName=Reason, Converter={StaticResource DenyReasonToVisibility}}" Grid.Row="2">
+    		<TextBlock Text="Комментарий судьи"  />
+    	<TextBox Name="JudgeDecisionComment"  />
+    	</StackPanel>
+    	
+        <Button Content="Запретить публикацию" Grid.Row="3" HorizontalAlignment="Right" Margin="0,6,6,6" Name="DenyButton" VerticalAlignment="Top" Height="23" IsEnabled="{Binding Text.Length,ElementName=Reason,Converter={StaticResource ItemsCountToEnabled}}"  Click="DenyButton_Click" />
+    </Grid>
+</Window>

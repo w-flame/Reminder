@@ -1,0 +1,10 @@
+﻿<Window x:Class="RaionReminder.ShowHelp"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Показать справку?" Height="154" Width="256" WindowStyle="ToolWindow" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
+    <Grid>
+        <TextBlock HorizontalAlignment="Stretch" Margin="0" Name="textBlock1" Text="Похоже Вы запустили программу в первый раз. Хотите прочитать краткую справку по работе с программой?" VerticalAlignment="Top" TextWrapping="Wrap" FontSize="14" TextAlignment="Center" />
+        <Button Content="Да" Height="23" HorizontalAlignment="Left" Margin="8,80,0,0" Name="yesbutton" VerticalAlignment="Top" Width="100" IsDefault="True" Click="yesbutton_Click" />
+        <Button Content="Нет" Height="23" HorizontalAlignment="Right" Margin="0,80,8,0" Name="nobutton" VerticalAlignment="Top" Width="100" IsCancel="True" />
+    </Grid>
+</Window>
