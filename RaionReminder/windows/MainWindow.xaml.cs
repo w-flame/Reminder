@@ -284,7 +284,14 @@ namespace RaionReminder
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
 
-            //Ищем в папке с программой файл nobsrweb и если он там есть, то прячем кнопку Экспортировать решение
+        
+			#region Версия в заголовке окна
+			System.Reflection.Assembly assembly = System.Reflection.Assembly.GetEntryAssembly();
+			Version version = assembly.GetName().Version;
+			Title = String.Format("Контроль публикации v.{0}",version.ToString());
+			#endregion
+        	
+        	//Ищем в папке с программой файл nobsrweb и если он там есть, то прячем кнопку Экспортировать решение
             bool bsrweb = true; ;
             string path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             if (System.IO.File.Exists(path + @"\nobsrweb"))

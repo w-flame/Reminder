@@ -1362,7 +1362,6 @@ namespace RaionReminder
     	public DateTime control_date_local;
     	public DateTime control_date_global;
     	public DateTime pub_date = new DateTime();
-    	//public bool published = false;
     	public bool late_local = false;
     	public bool late_global = false;
     }
@@ -2649,7 +2648,6 @@ namespace RaionReminder
             public int judge_id;
             public int stage;
             public int vidpr;
-            public string info;
             public bool inBSR;
             public bool ready_to_publish;
         }
@@ -2993,13 +2991,29 @@ namespace RaionReminder
                     command.CommandText = string.Format("DELETE FROM PUBLISH_EXCEPTIONS WHERE CASE_ID = {0}", id);
                     command.ExecuteNonQuery();
                 }
-
+                
+                
+                if (message.Length > 255) {
+                	Logging.Log("Add to excluded",string.Format("Дело {0} Слишком длинная причина исключения. Пришлось обрезать до 255 символов",CaseNumber));
+                	message = message.Substring(0,255);
+                }
+                
+                if (CaseNumber.Length > 64) {
+                	Logging.Log("Add to excluded",string.Format("Дело {0} Слишком длинный номер дела. Пришлось обрезать до 64 символов",CaseNumber));
+                	CaseNumber = CaseNumber.Substring(0,64);
+                }
+                
+                if (username.Length > 255) {
+                	Logging.Log("Add to excluded",string.Format("Дело {0} Слишком длинное имя пользователя. Пришлось обрезать до 255 символов",CaseNumber));
+                	username = username.Substring(0,255);
+                }
+                
                 using (FbCommand command = new FbCommand())
                 {
                     command.Connection = connection;
                     command.CommandType = CommandType.Text;
                     command.CommandText = string.Format("INSERT INTO PUBLISH_EXCEPTIONS (ID,CASE_ID,CASE_NUMBER,REASON,DATEDOCUM,VIDPR,STAGE,FIO) VALUES (GEN_ID(GEN_PUBLISH_EXCEPTIONS_ID, 1),{0},'{1}','{2}',{3},'{4}','{5}','{6}')",
-                        new object[] { id, CaseNumber, message, datedocum.ToString("yyyyMMdd"), vidpr, stage, username });
+                                                        new object[] { id, CaseNumber, message, datedocum.ToString("yyyyMMdd"), vidpr, stage, username});
                     command.ExecuteNonQuery();
                 }
 
