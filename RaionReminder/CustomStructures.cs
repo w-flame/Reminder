@@ -1592,7 +1592,11 @@ namespace RaionReminder
                             stage = reader.GetInt32(6),
                             FIO = reader.GetString(7)
                         };
-                        exclusions.Add(ei.case_id,ei);
+                        try {
+                        	exclusions.Add(ei.case_id,ei);
+                        } catch (Exception ex) {
+                        	
+                        }
                     }
                 }
 
@@ -2385,7 +2389,8 @@ namespace RaionReminder
                                 switch (stage)
                                 {
                                     case 113: //Первая инстанция
-                                        stmt = "SELECT c.ID, c.FULL_NUMBER, c.RESULT_DATE, c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.DECISION_ID = 50580000 or c.CASE_TYPE_ID = 50520004) AND (c.RESULT_DATE >= :sd) AND (c.RESULT_DATE <= :ed) ORDER BY c.ID, c.DECISION_DATE desc, NVL(b.PRPUB,0) DESC";
+                                        //stmt = "SELECT c.ID, c.FULL_NUMBER, c.RESULT_DATE, c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.DECISION_ID = 50580000 or c.CASE_TYPE_ID = 50520004) AND (c.RESULT_DATE >= :sd) AND (c.RESULT_DATE <= :ed) ORDER BY c.ID, c.DECISION_DATE desc, NVL(b.PRPUB,0) DESC";
+                                        stmt = "SELECT c.ID, c.FULL_NUMBER, c.RESULT_DATE, c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.DECISION_ID = 50580000) AND (c.RESULT_DATE >= :sd) AND (c.RESULT_DATE <= :ed) ORDER BY c.ID, c.DECISION_DATE desc, NVL(b.PRPUB,0) DESC";
                                         break;
                                     case 114: //Аппеляция
                                         stmt = "SELECT c.ID, c.Z_FULLNUMBER, c.DRESALT, c.DRESALT, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM GR2_DELO@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.DRESALT >= :sd) AND (c.DRESALT <= :ed) AND (c.IDRESH NOT IN (911000001,911000002,911000003,911000004,911000005,911000006,50440013)) ORDER BY c.ID, c.DRESALT desc, NVL(b.PRPUB,0) DESC";
@@ -3246,7 +3251,8 @@ namespace RaionReminder
 					
 					OracleDataReader reader = command.ExecuteReader();
 					while(reader.Read()){
-						if (res != null) {
+						
+						if (res != null && !reader.IsDBNull(3)) {
 							res.info += ", "+reader.GetString(3);
 							break;
 						}
@@ -3256,9 +3262,13 @@ namespace RaionReminder
                             id = id,
                             number = reader.GetString(0),
                             date = reader.GetDateTime(1),
-                            Judge = reader.GetString(2),
-                            info = reader.GetString(3),                                 
+                            Judge = reader.GetString(2),    
+							info = ""                            
                         };
+						
+						if (!reader.IsDBNull(3)) {
+							res.info = reader.GetString(3);
+						}
 						
 						if (reader[4] != DBNull.Value)
                         {

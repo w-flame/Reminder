@@ -4,7 +4,7 @@
      xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
 	<?define ProductName="Контроль публикации решений. Версия 1.6.3" ?>
 	<?define StartMenuName="Контроль публикации решений." ?>
-	<?define ProductVersion="1.6.3.0" ?>
+	<?define ProductVersion="1.6.4.0" ?>
 	<?define UpgradeCode="D889F7C7-63F0-410F-B563-74C5C5FA6A66"?>
 	<?define Manufacturer="Николай Гуляев 2012-2013"?>
 	
@@ -35,7 +35,7 @@
 		<Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
 		<Upgrade Id="$(var.UpgradeCode)">  
 		   <UpgradeVersion
-		      Minimum="1.0.0.0" Maximum="1.6.2.0"
+		      Minimum="1.0.0.0" Maximum="1.6.3.0"
 		      Property="PREVIOUSVERSIONSINSTALLED"
 		      IncludeMinimum="yes" IncludeMaximum="yes" />
 		</Upgrade> 
