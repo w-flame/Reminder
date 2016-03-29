@@ -37,6 +37,8 @@ namespace RaionReminder
          private DispatcherTimer RefreshTimer;
          private ObservableCollection<PublishListItem> listItems = new ObservableCollection<PublishListItem>();
          private string bsrPath;
+         private bool can_exclude = true;
+         
 
         public MainWindow()
         {
@@ -299,6 +301,16 @@ namespace RaionReminder
                 OpenSite.Visibility = System.Windows.Visibility.Collapsed;
                 bsrweb = false;
             }
+            
+            if (System.IO.File.Exists(path+@"\noexclude")) {
+            	can_exclude = false;
+            	DenyButton.Visibility = Visibility.Collapsed;
+            }
+            
+            if (System.IO.File.Exists(path+@"\noconfig")) {
+            	ConfigButton.Visibility = Visibility.Collapsed;
+            }
+            
 
             #region Commands
             CommandBinding cb = new CommandBinding(Commands.Commands.OpenWindow, openWindowCommandHandler, openWindowCanExecuteHandler);
@@ -766,7 +778,7 @@ namespace RaionReminder
             if (exclude_worker.IsBusy) e.CanExecute = false;
             else if (this.UnpublishedListBox.SelectedIndex != -1)
             {
-                if (mySettings.DenyOnlyInBSR)
+                if (mySettings.AddManualBSRExclusions)
                 {
                     if (((PublishListItem)this.UnpublishedListBox.SelectedItem).inBSR) e.CanExecute = true;
                     else e.CanExecute = false;

@@ -330,11 +330,26 @@
 						Name="pubDays"
 						HorizontalAlignment="Right" />
 				</GroupBox>
+				
 				<GroupBox
 					Header="Настройки приложения"
 					Margin="4,4,4,0"
 					Padding="4">
 					<StackPanel>
+						<CheckBox
+							Margin="0,2"
+							Name="ExcludeInBSR"
+							IsChecked="{Binding ExcludeInBSR}">
+							<TextBlock
+								TextWrapping="Wrap">Хранить запреты публикации в БД БСР</TextBlock>
+						</CheckBox>
+						<CheckBox
+							Margin="0,2"
+							Name="AddManualBSRExclusions"
+							IsChecked="{Binding AddManualBSRExclusions}">
+							<TextBlock
+								TextWrapping="Wrap">Учитывать ручные запреты из БД БСР</TextBlock>
+						</CheckBox>
 						<CheckBox
 							Margin="0,2"
 							Name="FirstGRAfterValidityDate"
@@ -372,6 +387,8 @@
 							<TextBlock
 								TextWrapping="Wrap">Показывать количество дней, прошедших после вынесения решения, вместо оставшегося срока</TextBlock>
 						</CheckBox>
+						
+						
 						<Button
 							Content="Сбросить на настройки по умолчанию"
 							Name="ResetSettings"

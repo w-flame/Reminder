@@ -137,6 +137,12 @@
 									DisplayMemberBinding="{Binding docStatus}"
 									utils:GridViewSort.PropertyName="docStatus"
 									Width="100" />
+							    <GridViewColumn
+									Header="PDF"
+									DisplayMemberBinding="{Binding pdf}"
+                                    utils:GridViewSort.PropertyName="pdf"
+									Width="50"
+									/>
 							</GridView>
 						</ListView.View>
 					</ListView>
@@ -195,6 +201,12 @@
 									DisplayMemberBinding="{Binding comment}"
                                     utils:GridViewSort.PropertyName="comment"
 									Width="300" />
+								<GridViewColumn
+									Header="PDF"
+									DisplayMemberBinding="{Binding pdf}"
+                                    utils:GridViewSort.PropertyName="pdf"
+									Width="50"
+									/>
 							</GridView>
 						</ListView.View>
 					</ListView>
@@ -248,6 +260,11 @@
 									DisplayMemberBinding="{Binding docStatus}"
 									utils:GridViewSort.PropertyName="docStatus"
 									Width="100" />
+								<GridViewColumn
+									Header="PDF"
+									DisplayMemberBinding="{Binding pdf}"
+                                    utils:GridViewSort.PropertyName="pdf"
+									Width="50"	/>
 							</GridView>
 						</ListView.View>
 					</ListView>

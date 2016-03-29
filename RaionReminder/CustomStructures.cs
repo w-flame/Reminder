@@ -85,7 +85,7 @@ namespace RaionReminder
             {
                 Properties.Settings.Default.Upgrade();
                 Properties.Settings.Default.FirstLaunch = false;
-              
+                Properties.Settings.Default.Save();
             }
 
             if (UseLocalSettings) GetAllSettingsFromConfig();
@@ -259,6 +259,14 @@ namespace RaionReminder
                                     _ShowDaysAfterConsideration = bool.Parse(reader.GetString(2));
                                     NotifyPropertyChanged("ShowDaysAfterConsideration");
                                     break;
+                                case "ExcludeInBSR":
+                                    _ExcludeInBSR = bool.Parse(reader.GetString(2));
+                                    NotifyPropertyChanged("ExcludeInBSR");
+                                    break;
+                                case "AddManualBSRExclusions":
+                                    _AddManualBSRExclusions = bool.Parse(reader.GetString(2));
+                                    NotifyPropertyChanged("AddManualBSRExclusions");
+                                    break;
                             }    
                         }
                         if (settings_count == 0) throw new ApplicationException("Таблица настроек пуста");
@@ -309,6 +317,12 @@ namespace RaionReminder
             NotifyPropertyChanged("pub_days");
             _BSRURL = Properties.Settings.Default.BSRURL;
             NotifyPropertyChanged("BSRURL");
+            
+            _ExcludeInBSR = Properties.Settings.Default.ExcludeInBSR;
+            NotifyPropertyChanged("ExcludeInBSR");
+            _AddManualBSRExclusions = Properties.Settings.Default.AddManualBSRExclusions;
+            NotifyPropertyChanged("AddManualBSRExclusions");
+            
         }
 
         public void SaveLocal()
@@ -335,6 +349,9 @@ namespace RaionReminder
                 Properties.Settings.Default.scan_days = _scan_days;
                 Properties.Settings.Default.pub_days = _pub_days;
                 Properties.Settings.Default.BSRURL = _BSRURL;
+                
+                Properties.Settings.Default.ExcludeInBSR = _ExcludeInBSR;
+                Properties.Settings.Default.AddManualBSRExclusions = _AddManualBSRExclusions;
 
                 Properties.Settings.Default.Save();
             }
@@ -441,6 +458,14 @@ namespace RaionReminder
 
                             command.CommandText = string.Format(commandTemplate, "ShowDaysAfterConsideration");
                             p.Value = _ShowDaysAfterConsideration;
+                            command.ExecuteNonQuery();
+                            
+                            command.CommandText = string.Format(commandTemplate,"ExcludeInBSR");
+                            p.Value = _ExcludeInBSR;
+                            command.ExecuteNonQuery();
+                            
+                            command.CommandText = string.Format(commandTemplate,"AddManualBSRExclusions");
+                            p.Value = _AddManualBSRExclusions;
                             command.ExecuteNonQuery();
                         }
 
@@ -822,6 +847,42 @@ namespace RaionReminder
                 }
             }
         }
+        
+        private bool _AddManualBSRExclusions;
+        public bool AddManualBSRExclusions
+        {
+            get
+            {
+
+                if (!UseLocalSettings && !_NoDBAvailable && (DateTime.Now - lastcheck).Minutes > 5)
+                {
+                    bool res = false;
+                    if (bool.TryParse(GetSettingFromDB("AddManualBSRExclusions"),out res)) {
+                    	if (_AddManualBSRExclusions != res) {
+                    		_AddManualBSRExclusions = res;
+                    		NotifyPropertyChanged("AddManualBSRExclusions");
+                    	}
+                    	else {
+                    		_AddManualBSRExclusions = res;
+                    	}
+                    }
+                }
+                return _AddManualBSRExclusions;
+            }
+
+            set
+            {
+                if (!_AdminMode) return;
+                if (_AddManualBSRExclusions != value)
+                {
+                    _AddManualBSRExclusions = value;
+                    NotifyPropertyChanged("AddManualBSRExclusions");
+                }
+                else {
+                    _AddManualBSRExclusions = value;
+                }
+            }
+        }
 
         private bool _ShowDaysAfterConsideration;
         public bool ShowDaysAfterConsideration
@@ -857,6 +918,40 @@ namespace RaionReminder
                 }
             }
         }
+        
+        private bool _ExcludeInBSR;
+        public bool ExcludeInBSR {
+        	get {
+        		if (!UseLocalSettings && !_NoDBAvailable && (DateTime.Now - lastcheck).Minutes > 5)
+                {
+                    bool res = false;
+                    if (bool.TryParse(GetSettingFromDB("ExcludeInBSR"),out res)) {
+                    	if (_ExcludeInBSR != res) {
+                    		_ExcludeInBSR = res;
+                    		NotifyPropertyChanged("ExcludeInBSR");
+                    	}
+                    	else {
+                    		_ExcludeInBSR = res;
+                    	}
+                    }
+                }
+                return _ExcludeInBSR;
+        	}
+        	
+        	set {
+        		if (!_AdminMode) return;
+                if (_ExcludeInBSR != value) {
+                    _ExcludeInBSR = value;
+                    NotifyPropertyChanged("ExcludeInBSR");
+                }
+                else {
+                    _ExcludeInBSR = value;
+
+                }
+        	}
+        }
+        
+        
 
         private int _scan_days;
         public int scan_days
@@ -1071,6 +1166,7 @@ namespace RaionReminder
         public bool inBSR { get; set; }
         public bool canceled {get; set;}
         public int pubTerm;
+        public bool noPDF { get; set; }
         public int DaysCount
         {
             get { return this.days; }
@@ -1157,7 +1253,7 @@ namespace RaionReminder
         public bool ReadyToPublish { get; set; }
         private bool _invertColors;
 
-        public PublishListItem(int id, int Count, string Number, string Judge, int vidpr, int stage, bool inBSR, bool ReadyToPublish, bool InvertColors = false, int pubTerm = 30, bool canceled = false)
+        public PublishListItem(int id, int Count, string Number, string Judge, int vidpr, int stage, bool inBSR, bool ReadyToPublish, bool InvertColors = false, int pubTerm = 30, bool noPDF = false, bool canceled = false)
         {
             this._invertColors = InvertColors;
             this.pubTerm = pubTerm;
@@ -1170,7 +1266,7 @@ namespace RaionReminder
             this.stage = stage;
             this.inBSR = inBSR;
             this.ReadyToPublish = ReadyToPublish;
-            
+            this.noPDF = noPDF;
         }
     }
 
@@ -1233,6 +1329,7 @@ namespace RaionReminder
         public int vidpr { get; set; }
         public int stage { get; set; }
         public string FIO { get; set; }
+        public bool BSRExcluded {get; set; }
     }
 
     public class InfoListItem 
@@ -1251,6 +1348,7 @@ namespace RaionReminder
         public string docStatus { get; set; }
         public bool hasCopies = false;
         public bool canceled  {get; set; }
+        public string pdf {get; set; }
 
         public InfoListItem()
         {
@@ -1272,6 +1370,7 @@ namespace RaionReminder
             this.docStatus = item.docStatus;
             this.returnDate = item.returnDate;
             this.canceled = item.canceled;
+            this.pdf = item.pdf;
         }      
     }
 
@@ -1327,6 +1426,7 @@ namespace RaionReminder
         public int excludeId;
         public string reason { get; set; }
         public string whoExcluded { get; set; }
+        public bool BSRAuto { get; set; } //Автоматическое исключение БСР
     }
 
     public class GetCasesListResult
@@ -1558,49 +1658,55 @@ namespace RaionReminder
             #region Выбираем из нашей базы исключения
             
             Hashtable exclusions = new Hashtable();
-            using (FbConnection connection = new FbConnection(exclConStr.ToString()))
-            {
-                connection.Open();
-
-                using (FbCommand command = new FbCommand())
-                {
-                    command.Connection = connection;
-                    command.CommandType = CommandType.Text;
-                    command.CommandText = "SELECT * FROM PUBLISH_EXCEPTIONS";
-
-                    /*FbParameter par = new FbParameter()
-                    {
-                        Direction = ParameterDirection.Input,
-                        DbType = DbType.Int32,
-                        Value = int.Parse(startDate.ToString("yyyyMMdd")),
-                        ParameterName = "@strt"
-                    };
-
-                    command.Parameters.Add(par);*/
-
-                    FbDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        string dumbDate = reader.GetString(4);
-                        ExclusionInfo ei = new ExclusionInfo(){
-                            id = reader.GetInt32(0),
-                            case_id = reader.GetInt32(1),
-                            number = reader.GetString(2),
-                            reason = reader.GetString(3),
-                            date = new DateTime(int.Parse(dumbDate.Substring(0,4)),int.Parse(dumbDate.Substring(4,2)),int.Parse(dumbDate.Substring(6,2))),
-                            vidpr = reader.GetInt32(5),
-                            stage = reader.GetInt32(6),
-                            FIO = reader.GetString(7)
-                        };
-                        try {
-                        	exclusions.Add(ei.case_id,ei);
-                        } catch (Exception ex) {
-                        	
-                        }
-                    }
-                }
-
-                connection.Close();
+            
+            if (!mySettings.ExcludeInBSR) {
+            
+	            using (FbConnection connection = new FbConnection(exclConStr.ToString()))
+	            {
+	                connection.Open();
+	
+	                using (FbCommand command = new FbCommand())
+	                {
+	                    command.Connection = connection;
+	                    command.CommandType = CommandType.Text;
+	                    command.CommandText = "SELECT * FROM PUBLISH_EXCEPTIONS";
+	
+	                    /*FbParameter par = new FbParameter()
+	                    {
+	                        Direction = ParameterDirection.Input,
+	                        DbType = DbType.Int32,
+	                        Value = int.Parse(startDate.ToString("yyyyMMdd")),
+	                        ParameterName = "@strt"
+	                    };
+	
+	                    command.Parameters.Add(par);*/
+	
+	                    FbDataReader reader = command.ExecuteReader();
+	                    while (reader.Read())
+	                    {
+	                        string dumbDate = reader.GetString(4);
+	                        ExclusionInfo ei = new ExclusionInfo(){
+	                            id = reader.GetInt32(0),
+	                            case_id = reader.GetInt32(1),
+	                            number = reader.GetString(2),
+	                            reason = reader.GetString(3),
+	                            date = new DateTime(int.Parse(dumbDate.Substring(0,4)),int.Parse(dumbDate.Substring(4,2)),int.Parse(dumbDate.Substring(6,2))),
+	                            vidpr = reader.GetInt32(5),
+	                            stage = reader.GetInt32(6),
+	                            FIO = reader.GetString(7),
+	                            BSRExcluded = false
+	                        };
+	                        try {
+	                        	exclusions.Add(ei.case_id,ei);
+	                        } catch (Exception ex) {
+	                        	
+	                        }
+	                    }
+	                }
+	
+	                connection.Close();
+	            }
+            
             }
 
             #endregion
@@ -1620,7 +1726,7 @@ namespace RaionReminder
                     Connection = connection,
                     Transaction = ot,
                     CommandType = CommandType.Text,
-                    CommandText = "SELECT ID_DOCUM, PRPUB, DATEPUBLIC, P_ANNOT FROM bsr.BSRP WHERE id_agora=:id"
+                    CommandText = "SELECT ID_DOCUM, PRPUB, DATEPUBLIC, P_ANNOT, USERMOD, DATEDOCUM FROM bsr.BSRP WHERE id_agora=:id"
                 };
 
                 OracleParameter oraIdAgora = new OracleParameter()
@@ -1656,13 +1762,33 @@ namespace RaionReminder
                     CommandType = CommandType.Text,
                     CommandText = "SELECT PRPUB FROM BSR.TEXT_DOCUM WHERE ID_DOCUM = :id"
                 };
+                
+                
 
                 OracleParameter oraId = new OracleParameter() {
                     Direction = ParameterDirection.Input,
                     OracleType = System.Data.OracleClient.OracleType.Number,
                     ParameterName = ":id"
                 };
+               
                 oraDocumentStatusCommand.Parameters.Add(oraId);
+                
+                
+                OracleCommand oraPDFCommand = new OracleCommand(){
+                	Connection = connection,
+                	Transaction = ot,
+                	CommandType = CommandType.Text,
+                	CommandText = "SELECT COUNT(*) FROM BSR.IMAGE_DOCUM WHERE ID_DOCUM = :id"
+                };
+                
+                OracleParameter oraId2 = new OracleParameter() {
+                    Direction = ParameterDirection.Input,
+                    OracleType = System.Data.OracleClient.OracleType.Number,
+                    ParameterName = ":id"
+                };
+                
+                oraPDFCommand.Parameters.Add(oraId2);
+               
 
                 #endregion
 
@@ -1816,6 +1942,7 @@ namespace RaionReminder
                         OracleNumber OracleCaseId = new OracleNumber();
                         DateTime publishDate = new DateTime();
                         bool foundPub = false;
+                        
                         string p_annot = item.info;
 
                         if (!oraReader.HasRows) {
@@ -1841,6 +1968,29 @@ namespace RaionReminder
                                     	p_annot = oraReader[3].ToString();
                                     }
                                 }
+                                
+                                //Найдено исключение в БД БСР
+                                if (PRPUB != DBNull.Value && (decimal)PRPUB == 2) {
+                                	
+                                	
+			                        ExclusionInfo ei = new ExclusionInfo(){
+			                            id = 0,
+			                            case_id = item.id,
+			                            number = item.number,
+			                            reason = oraReader.GetString(3),
+			                            date = oraReader.GetDateTime(5),
+			                            vidpr = item.vidpr,
+			                            stage = item.stage,
+			                            FIO = oraReader.GetString(4),
+			                            BSRExcluded = true
+			                        };
+			                        try {
+			                        	exclusions.Add(ei.case_id,ei);
+			                        } catch (Exception ex) {
+			                        	
+			                        }
+                                	
+                                }
 
                                  OracleCaseId = oraReader.GetOracleNumber(0);
 
@@ -1862,7 +2012,19 @@ namespace RaionReminder
 
                         if (foundPub) //Дело опубликовано
                         {
-                           //Проверим вариант, когда дело опубликовано и находится в исключениях одновременно
+                            oraId2.Value = OracleCaseId;
+                            OracleDataReader pdfReader = oraPDFCommand.ExecuteReader();
+                            string pdf="";
+                            if(pdfReader.HasRows) {
+                            	pdfReader.Read();
+                            	
+                            	if (!pdfReader.IsDBNull(0) && pdfReader.GetInt32(0) > 0) {
+                            		pdf = "+";
+                            	}
+                            }
+                        	
+                        	
+                        	//Проверим вариант, когда дело опубликовано и находится в исключениях одновременно
                             if (exclusions[item.id] != null)
                             {
                                 //Элемент в исключениях
@@ -1871,15 +2033,19 @@ namespace RaionReminder
                                 eli.reason = "(Опубликовано!) "+ei.reason;
                                 eli.whoExcluded = ei.FIO;
                                 eli.excludeId = ei.id;
+                                eli.pdf = pdf;
                                 result.Excluded.Add(eli);
                                 last_item_type = 3;
                             } else {
 	                        	PublishedListItem pli = new PublishedListItem(item);
 	                            pli.comment = p_annot;
 	                            pli.pubDate = publishDate;
+	                            pli.pdf = pdf;
 	                            result.Published.Add(pli);
 	                            last_item_type = 2;
                             }
+                            
+                            
                         }
 
                         else
@@ -1919,6 +2085,17 @@ namespace RaionReminder
                                     }
 
                                     item.docStatus = statText.Substring(0, statText.Length - 2); //Убираем запятую с пробелом
+                                    
+                                }
+                                
+                                oraId2.Value = OracleCaseId;
+                                OracleDataReader pdfReader = oraPDFCommand.ExecuteReader();
+                                if(pdfReader.HasRows) {
+                                	pdfReader.Read();
+                                	
+                                	if (!pdfReader.IsDBNull(0) && pdfReader.GetInt32(0) > 0) {
+                                		item.pdf = "+";
+                                	}
                                 }
                             }
                             
@@ -1933,6 +2110,7 @@ namespace RaionReminder
                                 eli.reason = ei.reason;
                                 eli.whoExcluded = ei.FIO;
                                 eli.excludeId = ei.id;
+                                eli.BSRAuto = false;
                                 result.Excluded.Add(eli);
                                 last_item_type = 3;
                                 Excluded = true;
@@ -1950,11 +2128,26 @@ namespace RaionReminder
                                         if (AutoExcludeCanceledCivil)
                                         {
                                             //Logging.Log("Get cases list. Auto exclude 9,M",item.number+ " show: "+ShowCanceledCivil.ToString()+ " exclude:"+AutoExcludeCanceledCivil.ToString());
-                                        	ExcludedListItem eli = new ExcludedListItem(item);
+                                        	
+                                            if (!item.inBSR && mySettings.ExcludeInBSR) {
+                                            	//Если дела нет в БСР и стоит хранение запретов только в БД БСР, то сохранять исключения некуда, в остальных случаях, сохраним.
+                                            	continue;
+                                            }
+                                            
+                                            ExcludedListItem eli = new ExcludedListItem(item);
                                             string exclReason1 ="Дело не рассматривалось по существу";
-                                            eli.excludeId = DataModel._AddToExcluded(item.id, item.number, exclReason1, item.date, vidpr, stage, "auto");
                                             eli.reason = exclReason1;
                                             eli.whoExcluded = "bsr";
+                                            
+                                            if (!mySettings.ExcludeInBSR) {
+                                            	eli.excludeId = DataModel._AddToExcluded(item.id, item.number, exclReason1, item.date, vidpr, stage, "auto", false);
+                                            	eli.BSRAuto = false;
+                                            } else {
+                                            	eli.excludeId = 0;
+                                            	eli.BSRAuto = true;
+                                            }
+                                        
+                                            
                                             result.Excluded.Add(eli);
                                             last_item_type = 3;
                                             continue;
@@ -1971,9 +2164,17 @@ namespace RaionReminder
                                 {
                                     ExcludedListItem eli = new ExcludedListItem(item);
                                     
-                                    eli.excludeId = DataModel._AddToExcluded(item.id, item.number, exclReason, item.date, vidpr, stage, "bsr");
+                                    if (!mySettings.ExcludeInBSR) {
+                                    	eli.excludeId = DataModel._AddToExcluded(item.id, item.number, exclReason, item.date, vidpr, stage, "auto", false);
+                                    	eli.BSRAuto = false;
+                                    } else {
+                                    	eli.excludeId = 0;
+                                    	eli.BSRAuto = true;
+                                    }
                                     eli.reason = exclReason;
                                     eli.whoExcluded = "bsr";
+                                    
+                                    
                                     
                                     result.Excluded.Add(eli);
                                     last_item_type = 3;
@@ -2092,28 +2293,33 @@ namespace RaionReminder
 
         
             List<int> exclusions = new List<int>();
-            using (FbConnection connection = new FbConnection(exclConStr.ToString()))
-            {
-                connection.Open();
-
-                using (FbCommand command = new FbCommand())
-                {
-                    command.Connection = connection;
-                    command.CommandType = CommandType.Text;
-                    command.CommandText = "SELECT CASE_ID FROM PUBLISH_EXCEPTIONS";
-
-                    FbDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        exclusions.Add(reader.GetInt32(0));
-                    }
-                    reader.Close();
-                }
-				
-                //Logging.Log("exclusions found");
-                
-                connection.Close();
-            }
+            
+            if (!mySettings.ExcludeInBSR) {
+           
+	            using (FbConnection connection = new FbConnection(exclConStr.ToString()))
+	            {
+	                connection.Open();
+	
+	                using (FbCommand command = new FbCommand())
+	                {
+	                    command.Connection = connection;
+	                    command.CommandType = CommandType.Text;
+	                    command.CommandText = "SELECT CASE_ID FROM PUBLISH_EXCEPTIONS";
+	
+	                    FbDataReader reader = command.ExecuteReader();
+	                    while (reader.Read())
+	                    {
+	                        exclusions.Add(reader.GetInt32(0));
+	                    }
+	                    reader.Close();
+	                }
+					
+	                //Logging.Log("exclusions found");
+	                
+	                connection.Close();
+	            }
+            
+             }
 
             #endregion
 
@@ -2147,31 +2353,31 @@ namespace RaionReminder
 	            cases = new List<SDPCaseInfo>();
 	
 	
-                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 1, 113, start_date, end_date, judges));
-                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 1, 114, start_date, end_date, judges));
-                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 1, 115, start_date, end_date, judges));
+                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 1, 113, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
+                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 1, 114, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
+                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 1, 115, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
 
                 if (FirstGrAfterConsideration)
-                    cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 2, 1130, start_date, end_date, judges));
+                    cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 2, 1130, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
                 else
-                    cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 2, 113, start_date, end_date, judges));
-                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 2, 114, start_date, end_date, judges));
-                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 2, 115, start_date, end_date, judges));
+                    cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 2, 113, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
+                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 2, 114, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
+                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 2, 115, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
 
-                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 5, 110, start_date, end_date, judges));
-                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 5, 111, start_date, end_date, judges));
+                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 5, 110, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
+                cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 5, 111, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
                 
                 
                 if (FirstAdmAfterConsideration)
-                	cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 5, 1130, start_date, end_date, judges));
+                	cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 5, 1130, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
 				else 
-					cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 5, 113, start_date, end_date, judges));
+					cases.AddRange(GetCasesFromSDP(connection, ot, SDPLinkName, 5, 113, start_date, end_date, judges,mySettings.AddManualBSRExclusions));
 	           
 	            #endregion
 	                
                 
-                FbConnection ExclConnection = new FbConnection(exclConStr.ToString());
-                ExclConnection.Open();
+               // FbConnection ExclConnection = new FbConnection(exclConStr.ToString());
+                //ExclConnection.Open();
 
 
                     //Начинаем искать неопубликованные дела
@@ -2184,7 +2390,10 @@ namespace RaionReminder
                     {
                     	
                     	if (cs.id == last_id) continue;
- 
+ 						last_id = cs.id;
+                    	
+                    	
+                    	
                         if (exclusions.IndexOf(cs.id) == -1)
                         {
                             //Дело не в исключениях
@@ -2200,7 +2409,7 @@ namespace RaionReminder
                                     if (AutoExcludeCanceledCivil)
                                     {
                                     	//Logging.Log("Get unpublished cases. Auto exclude 9,M",cs.number+ " show: "+ShowCanceledCivil.ToString()+ " exclude:"+AutoExcludeCanceledCivil.ToString());
-                                    	DataModel._AddToExcluded(cs.id, cs.number, "Дело не рассматривалось по существу", cs.date, cs.vidpr, cs.stage, "auto");
+                                    	DataModel._AddToExcluded(cs.id, cs.number, "Дело не рассматривалось по существу", cs.date, cs.vidpr, cs.stage, "auto",false);
                                         continue;
                                     }
                                 }
@@ -2210,8 +2419,19 @@ namespace RaionReminder
                                 if (cs.inBSR) //Дело загружено в БСР
                                 {
 
-                                 //Проверим на правила автоисключения БСР
-                                    using (OracleCommand autoExclCommand = new OracleCommand())
+                                	
+                                	if (!mySettings.ExcludeInBSR)
+                                		if (cs.bsr_excluded) {
+                                			DataModel._AddToExcluded(cs.id, cs.number, cs.exclude_reason, cs.date, cs.vidpr, cs.stage, cs.exclude_user, true);
+                                            continue;
+                                		}
+                                	
+                                	if (mySettings.ExcludeInBSR && cs.bsr_excluded) {
+                                		continue;
+                                	}
+                                	
+                                 	//Если надо сохранять информацию по исключениям в служебную БД, то проверим на правила автоисключения БСР
+                                    /*using (OracleCommand autoExclCommand = new OracleCommand())
                                     {
                                         autoExclCommand.Connection = connection;
                                         autoExclCommand.Transaction = ot;
@@ -2223,10 +2443,10 @@ namespace RaionReminder
                                         if (denyreason != null)
                                         {
                                             //Что-то нашли, добавляем в исключения
-                                            DataModel._AddToExcluded(cs.id, cs.number, denyreason, cs.date, cs.vidpr, cs.stage, "bsr");
+                                            DataModel._AddToExcluded(cs.id, cs.number, denyreason, cs.date, cs.vidpr, cs.stage, "bsr", true);
                                             continue;
                                         }
-                                    }
+                                    }*/
 
                                 }
 
@@ -2236,18 +2456,12 @@ namespace RaionReminder
                                     days_remains = (int)((end_date.Date - cs.date.Date).TotalDays);
                                 else
                                     days_remains = (pubDays - (int)((end_date.Date - cs.date.Date).TotalDays));
-                                result.Add(new PublishListItem(cs.id, days_remains, cs.number, (string)groupNames[cs.judge_id], cs.vidpr, cs.stage, cs.inBSR, cs.ready_to_publish,ShowDaysAfterConsideration,pubDays));
+                                result.Add(new PublishListItem(cs.id, days_remains, cs.number, (string)groupNames[cs.judge_id], cs.vidpr, cs.stage, cs.inBSR, cs.ready_to_publish,ShowDaysAfterConsideration,pubDays,cs.noPDF));
 
                             }
                         
                     }
 
-
-                
-
-
-
-                ExclConnection.Close();
                 ot.Commit();
                 connection.Close();
 
@@ -2265,16 +2479,7 @@ namespace RaionReminder
             AppSettings mySettings = ((App)System.Windows.Application.Current).mySettings;
 
             #region connectionStrings
-
-            FbConnectionStringBuilder exclConStr = new FbConnectionStringBuilder()
-            {
-                Charset = "WIN1251",
-                UserID = mySettings.exclUser,
-                Password = mySettings.exclPass,
-                Database = mySettings.exclBase,
-                ServerType = FbServerType.Default
-            };
-
+            
 
             string bsr_pass = mySettings.bsrPass;
             string bsr_db = mySettings.bsrBase;
@@ -2286,36 +2491,51 @@ namespace RaionReminder
 
             #region Выбираем из нашей базы исключения
             
+            
+            
             Hashtable exclusions = new Hashtable();
-            using (FbConnection connection = new FbConnection(exclConStr.ToString()))
-            {
-                connection.Open();
-
-                using (FbCommand command = new FbCommand())
-                {
-                    command.Connection = connection;
-                    command.CommandType = CommandType.Text;
-                    command.CommandText = "SELECT * FROM PUBLISH_EXCEPTIONS";
-
-                    FbDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        string dumbDate = reader.GetString(4);
-                        ExclusionInfo ei = new ExclusionInfo(){
-                            id = reader.GetInt32(0),
-                            case_id = reader.GetInt32(1),
-                            number = reader.GetString(2),
-                            reason = reader.GetString(3),
-                            date = new DateTime(int.Parse(dumbDate.Substring(0,4)),int.Parse(dumbDate.Substring(4,2)),int.Parse(dumbDate.Substring(6,2))),
-                            vidpr = reader.GetInt32(5),
-                            stage = reader.GetInt32(6),
-                            FIO = reader.GetString(7)
-                        };
-                        exclusions.Add(ei.case_id,ei);
-                    }
-                }
-
-                connection.Close();
+            
+            if (!mySettings.ExcludeInBSR) {
+            	
+            	FbConnectionStringBuilder exclConStr = new FbConnectionStringBuilder()
+	            {
+	                Charset = "WIN1251",
+	                UserID = mySettings.exclUser,
+	                Password = mySettings.exclPass,
+	                Database = mySettings.exclBase,
+	                ServerType = FbServerType.Default
+	            };
+            	
+	            using (FbConnection connection = new FbConnection(exclConStr.ToString()))
+	            {
+	                connection.Open();
+	
+	                using (FbCommand command = new FbCommand())
+	                {
+	                    command.Connection = connection;
+	                    command.CommandType = CommandType.Text;
+	                    command.CommandText = "SELECT * FROM PUBLISH_EXCEPTIONS";
+	
+	                    FbDataReader reader = command.ExecuteReader();
+	                    while (reader.Read())
+	                    {
+	                        string dumbDate = reader.GetString(4);
+	                        ExclusionInfo ei = new ExclusionInfo(){
+	                            id = reader.GetInt32(0),
+	                            case_id = reader.GetInt32(1),
+	                            number = reader.GetString(2),
+	                            reason = reader.GetString(3),
+	                            date = new DateTime(int.Parse(dumbDate.Substring(0,4)),int.Parse(dumbDate.Substring(4,2)),int.Parse(dumbDate.Substring(6,2))),
+	                            vidpr = reader.GetInt32(5),
+	                            stage = reader.GetInt32(6),
+	                            FIO = reader.GetString(7)
+	                        };
+	                        exclusions.Add(ei.case_id,ei);
+	                    }
+	                }
+	
+	                connection.Close();
+	            }
             }
 
             #endregion
@@ -2375,13 +2595,13 @@ namespace RaionReminder
                                 {
 
                                     case 113: //Первая инстанция
-                                        stmt = "SELECT c.ID, c.FULL_NUMBER, c.VERDICT_DATE, c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM U1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.VERDICT_DATE >= :sd) AND (c.VERDICT_DATE <= :ed) ORDER BY c.ID, c.VERDICT_DATE desc, NVL(b.PRPUB,0) DESC";
+                                        stmt = "SELECT c.ID, c.FULL_NUMBER, c.VERDICT_DATE, c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM U1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (c.VERDICT_DATE >= :sd) AND (c.VERDICT_DATE <= :ed) ORDER BY c.ID, c.VERDICT_DATE desc, NVL(b.PRPUB,0) DESC";
                                         break;
                                     case 114: //Кассация
-                                        stmt = "SELECT c.ID, c.FULL_NUMBER, c.VERDICT_II_DATE, c.VERDICT_II_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM U2_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.id is not null) AND (c.VERDICT_II_DATE >= :sd) AND (c.VERDICT_II_DATE <= :ed) AND (c.VERDICT_II_ID = 50190000) ORDER BY c.ID, c.VERDICT_II_DATE desc, NVL(b.PRPUB,0) DESC";
+                                        stmt = "SELECT c.ID, c.FULL_NUMBER, c.VERDICT_II_DATE, c.VERDICT_II_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM U2_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (c.id is not null) AND (c.VERDICT_II_DATE >= :sd) AND (c.VERDICT_II_DATE <= :ed) AND (c.VERDICT_II_ID = 50190000) ORDER BY c.ID, c.VERDICT_II_DATE desc, NVL(b.PRPUB,0) DESC";
                                         break;
                                     case 115: //Единый Надзор
-                                        stmt = "SELECT c.ID, c.proceeding_full_number, c.protest_verdict_date, c.protest_verdict_date, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM u33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.protest_VERDICT_DATE >= :sd) AND (c.protest_VERDICT_DATE <= :ed) AND (c.verdict_by_protest = 11050001) ORDER BY c.ID, c.protest_VERDICT_DATE desc, NVL(b.PRPUB,0) DESC";
+                                        stmt = "SELECT c.ID, c.proceeding_full_number, c.protest_verdict_date, c.protest_verdict_date, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM u33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (c.protest_VERDICT_DATE >= :sd) AND (c.protest_VERDICT_DATE <= :ed) AND (c.verdict_by_protest = 11050001) ORDER BY c.ID, c.protest_VERDICT_DATE desc, NVL(b.PRPUB,0) DESC";
                                         break;
                                 }
                                 break;
@@ -2390,13 +2610,13 @@ namespace RaionReminder
                                 {
                                     case 113: //Первая инстанция
                                         //stmt = "SELECT c.ID, c.FULL_NUMBER, c.RESULT_DATE, c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.DECISION_ID = 50580000 or c.CASE_TYPE_ID = 50520004) AND (c.RESULT_DATE >= :sd) AND (c.RESULT_DATE <= :ed) ORDER BY c.ID, c.DECISION_DATE desc, NVL(b.PRPUB,0) DESC";
-                                        stmt = "SELECT c.ID, c.FULL_NUMBER, c.RESULT_DATE, c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.DECISION_ID = 50580000) AND (c.RESULT_DATE >= :sd) AND (c.RESULT_DATE <= :ed) ORDER BY c.ID, c.DECISION_DATE desc, NVL(b.PRPUB,0) DESC";
+                                        stmt = "SELECT c.ID, c.FULL_NUMBER, c.RESULT_DATE, c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (c.DECISION_ID = 50580000) AND (c.RESULT_DATE >= :sd) AND (c.RESULT_DATE <= :ed) ORDER BY c.ID, c.DECISION_DATE desc, NVL(b.PRPUB,0) DESC";
                                         break;
                                     case 114: //Аппеляция
-                                        stmt = "SELECT c.ID, c.Z_FULLNUMBER, c.DRESALT, c.DRESALT, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM GR2_DELO@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.DRESALT >= :sd) AND (c.DRESALT <= :ed) AND (c.IDRESH NOT IN (911000001,911000002,911000003,911000004,911000005,911000006,50440013)) ORDER BY c.ID, c.DRESALT desc, NVL(b.PRPUB,0) DESC";
+                                        stmt = "SELECT c.ID, c.Z_FULLNUMBER, c.DRESALT, c.DRESALT, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM GR2_DELO@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (c.DRESALT >= :sd) AND (c.DRESALT <= :ed) AND (c.IDRESH NOT IN (911000001,911000002,911000003,911000004,911000005,911000006,50440013,50440041)) ORDER BY c.ID, c.DRESALT desc, NVL(b.PRPUB,0) DESC";
                                         break;
                                     case 115: //Кассация
-                                        stmt = "SELECT c.ID, c.proceeding_full_number, c.protest_verdict_date, c.protest_verdict_date, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM g33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.protest_VERDICT_DATE >= :sd) AND (c.protest_VERDICT_DATE <= :ed) ORDER BY c.ID, c.protest_VERDICT_DATE desc, NVL(b.PRPUB,0) DESC";
+                                        stmt = "SELECT c.ID, c.proceeding_full_number, c.protest_verdict_date, c.protest_verdict_date, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM g33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (c.protest_VERDICT_DATE >= :sd) AND (c.protest_VERDICT_DATE <= :ed) ORDER BY c.ID, c.protest_VERDICT_DATE desc, NVL(b.PRPUB,0) DESC";
                                         break;
                                 }
                                 break;
@@ -2404,7 +2624,7 @@ namespace RaionReminder
                                 switch (stage)
                                 {
                                     case 113:
-                                        stmt = "SELECT c.ID, c.FULL_NUMBER, c.VERDICT_DATE,c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM m_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (VERDICT_DATE >= :sd) AND (VERDICT_DATE <= :ed) ORDER BY c.ID, c.VERDICT_DATE desc, NVL(b.PRPUB,0) DESC";
+                                        stmt = "SELECT c.ID, c.FULL_NUMBER, c.VERDICT_DATE,c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM m_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (VERDICT_DATE >= :sd) AND (VERDICT_DATE <= :ed) ORDER BY c.ID, c.VERDICT_DATE desc, NVL(b.PRPUB,0) DESC";
                                         break;
                                 }
                                 break;
@@ -2412,22 +2632,22 @@ namespace RaionReminder
                                 switch (stage)
                                 {
                                     case 110: //Первый пересмотр
-                                        stmt = "SELECT c.ID, c.CASE_NUMBER, c.DECREE_DATE, c.DECREE_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC  FROM adm1_case@{0} c  LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.DECREE_DATE >= :sd) AND (c.DECREE_DATE <= :ed)  ORDER BY c.ID, c.DECREE_DATE desc, NVL(b.PRPUB,0) DESC"; //AND (adm1_case.DECREE_ID NOT IN (70100005,70100006))
+                                        stmt = "SELECT c.ID, c.CASE_NUMBER, c.DECREE_DATE, c.DECREE_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT  FROM adm1_case@{0} c  LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (c.DECREE_DATE >= :sd) AND (c.DECREE_DATE <= :ed)  ORDER BY c.ID, c.DECREE_DATE desc, NVL(b.PRPUB,0) DESC"; //AND (adm1_case.DECREE_ID NOT IN (70100005,70100006))
                                         break;
                                     case 111: //Второй пересмотр
-                                        stmt = "SELECT c.ID, c.CASE_NUMBER, c.DECREE_DATE, c.DECREE_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM adm2_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.DECREE_DATE >= :sd) AND (c.DECREE_DATE <= :ed)  ORDER BY c.ID, c.DECREE_DATE desc, NVL(b.PRPUB,0) DESC"; //AND (adm2_case.DECREE_ID NOT IN (70030007,70030008))
+                                        stmt = "SELECT c.ID, c.CASE_NUMBER, c.DECREE_DATE, c.DECREE_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM adm2_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (c.DECREE_DATE >= :sd) AND (c.DECREE_DATE <= :ed)  ORDER BY c.ID, c.DECREE_DATE desc, NVL(b.PRPUB,0) DESC"; //AND (adm2_case.DECREE_ID NOT IN (70030007,70030008))
                                         break;
                                     case 113: //Первая инстанция
-                                        stmt = "SELECT c.ID, c.CASE_NUMBER, c.DECREE_DATE, c.TAKE_LAW_EFFECT_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM adm_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.DECREE_DATE >= :sd) AND (c.DECREE_DATE <= :ed) ORDER BY c.ID, c.DECREE_DATE desc, NVL(b.PRPUB,0) DESC";
+                                        stmt = "SELECT c.ID, c.CASE_NUMBER, c.DECREE_DATE, c.TAKE_LAW_EFFECT_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM adm_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (c.DECREE_DATE >= :sd) AND (c.DECREE_DATE <= :ed) ORDER BY c.ID, c.DECREE_DATE desc, NVL(b.PRPUB,0) DESC";
                                         break;
                                     case 115: //Надзор
-                                        stmt = "SELECT c.id, c.full_number, c.verdict_date, c.verdict_date, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM a33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE (c.verdict_date >= :sd) AND (c.verdict_date <= :ed)  ORDER BY c.ID, c.verdict_date desc, NVL(b.PRPUB,0) DESC";
+                                        stmt = "SELECT c.id, c.full_number, c.verdict_date, c.verdict_date, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM a33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE (c.verdict_date >= :sd) AND (c.verdict_date <= :ed)  ORDER BY c.ID, c.verdict_date desc, NVL(b.PRPUB,0) DESC";
                                         break;
                                 }
                                 break;
                              case 4://Возвраты
                                 case 113: 
-                                    stmt = "SELECT c.ID, c.FULL_NUMBER, c.RESULT_DATE, c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA WHERE c.DECISION_ID <> 50580000 AND c.CASE_TYPE_ID <> 50520004 AND (c.RESULT_DATE >= :sd) AND (c.RESULT_DATE <= :ed) ORDER BY c.ID, c.DECISION_DATE desc, NVL(b.PRPUB,0) DESC";
+                                    stmt = "SELECT c.ID, c.FULL_NUMBER, c.RESULT_DATE, c.VALIDITY_DATE, b.ID_DOCUM, b.PRPUB, b.DATEPUBLIC, b.USERMOD, de.prich, b.P_ANNOT FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID = b.ID_AGORA left join bsr.rub_docum r on b.id_docum = r.id_docum left join rub_docum_exception de on r.rubrikat = de.vncode WHERE c.DECISION_ID <> 50580000 AND c.CASE_TYPE_ID <> 50520004 AND (c.RESULT_DATE >= :sd) AND (c.RESULT_DATE <= :ed) ORDER BY c.ID, c.DECISION_DATE desc, NVL(b.PRPUB,0) DESC";
                                     break;
                         }
                         stmt = string.Format(stmt,SDPLinkName);
@@ -2468,6 +2688,7 @@ namespace RaionReminder
                             while (reader.Read())
                             {                                
                                 int case_id = reader.GetInt32(0);
+                                string case_number = reader.GetString(1);
 
                                 if (case_id == last_id) { continue; } //На случай дублей в БСР
                                 else { last_id = case_id; }
@@ -2479,7 +2700,7 @@ namespace RaionReminder
                                 DateTime valididty_date = considered;
 
                                
-                                if (reader[3] != DBNull.Value) // Дата вступления в зак. силу
+                                if (!reader.IsDBNull(3)) // Дата вступления в зак. силу
                                 {
                                     valididty_date = reader.GetDateTime(3);
                                 }
@@ -2490,12 +2711,48 @@ namespace RaionReminder
                                 }
 
                                 
+                                if (exclusions[case_id] == null) {
+	                                //Дела нет в исключенных, проверим на исключения БСР
+                                	
+                                	//Автоисключение
+	                                if (!reader.IsDBNull(8)) {
+	                                	
+	                                	if (exclusions[case_id] == null) {
+	                                		ExclusionInfo ei = new ExclusionInfo(){
+	                                			date = considered,
+	                                			FIO = reader.GetString(7),
+	                                			id = 0,
+	                                			number = case_number,
+	                                			reason = reader.GetString(8),
+	                                			BSRExcluded = false
+	                                		};
+	                                		ei.case_id = case_id;
+	                                		exclusions.Add(case_id,ei);
+	                                	}
+	                                }
+	                                
+	                                //Исключено в базе БСР
+	                                if (mySettings.AddManualBSRExclusions && !reader.IsDBNull(5) && reader.GetInt32(5) == 2) {
+	                                	if (exclusions[case_id] == null) {
+	                                		ExclusionInfo ei = new ExclusionInfo(){
+	                                			date = considered,
+	                                			FIO = reader.GetString(7),
+	                                			id = 0,
+	                                			number = case_number,
+	                                			reason = reader.GetString(9),
+	                                			BSRExcluded = true
+	                                		};
+	                                		ei.case_id = case_id;
+	                                		exclusions.Add(case_id,ei);
+	                                	}
+	                                }
+                                }
+                                
                                 SummaryInfoLates unpubl = new SummaryInfoLates();
-                                unpubl.case_number = reader.GetString(1);
+                                unpubl.case_number = case_number;
                                 
                                 if (exclusions[case_id] != null) //Дело есть в исключениях
                                 {
-                                    
                                 	ExclusionInfo ei = (ExclusionInfo)exclusions[case_id];
                                     
                                     #region Грязный хак для приведения причин автоисключения БСР к нашему виду
@@ -2655,49 +2912,96 @@ namespace RaionReminder
             public int vidpr;
             public bool inBSR;
             public bool ready_to_publish;
+            public string exclude_user;
+            public bool bsr_excluded;
+            public string exclude_reason;
+            public bool noPDF;
         }
 
-        public static void RemoveFromExcluded(int[] ids)
+        public static void RemoveFromExcluded(int[] ids, bool inBSR)
         {
-            using (FbConnection connection = new FbConnection())
-            {
-                AppSettings mySettings = ((App)System.Windows.Application.Current).mySettings;
-                FbConnectionStringBuilder exclConStr = new FbConnectionStringBuilder()
-                {
-                    Charset = "WIN1251",
-                    UserID = mySettings.exclUser,
-                    Password = mySettings.exclPass,
-                    Database = mySettings.exclBase,
-                    ServerType = FbServerType.Default
-                };
+        	AppSettings mySettings = ((App)System.Windows.Application.Current).mySettings;
+        	if (inBSR) {
+        		
+        		
+        		string bsr_pass = mySettings.bsrPass;
+		        string bsr_db = mySettings.bsrBase;
+		        string bsr_login = mySettings.bsrUser;
+		
+		        string bsrConnStr = "Data Source=" + bsr_db + ";Password=" + bsr_pass + ";User ID=" + bsr_login;
+		        		
+        		using (OracleConnection conn = new OracleConnection(bsrConnStr)) {
+		        	conn.Open();
+		        	
+		        	using (OracleCommand command = new OracleCommand()){
+		        		command.CommandType = CommandType.Text;
+		        		command.Connection = conn;
+		        		command.CommandText = "UPDATE BSR.BSRP SET PRPUB=0, P_ANNOT=null WHERE ID_AGORA=:id";
+		        		
+		        		OracleParameter param = new OracleParameter() {
+		        			DbType = DbType.Int32,
+		        			Direction = ParameterDirection.Input,
+		        			ParameterName = ":id"
+		        		};
+		        		
+		        		command.Parameters.Add(param);
+		        		
+		        		foreach (int i in ids) {
+		        			if (i == 0) break;
+	                        param.Value = i;
+	                        command.ExecuteNonQuery();
+	                    }
+		        		
+		        	}
+		        	
+		        	
+		        	conn.Close();
+        			
+        			
+        		}
+        	} else {
 
-                connection.ConnectionString = exclConStr.ToString();
-                connection.Open();
-
-                using (FbCommand command = new FbCommand())
-                {
-                    command.CommandType = CommandType.Text;
-                    command.Connection = connection;
-                    command.CommandText = "DELETE FROM PUBLISH_EXCEPTIONS WHERE id = @id";
-
-                    FbParameter param = new FbParameter()
-                    {
-                        DbType = DbType.Int32,
-                        Direction = ParameterDirection.Input,
-                        ParameterName = "@id"
-                    };
-
-                    command.Parameters.Add(param);
-
-                    foreach (int i in ids) {
-                        param.Value = i;
-                        command.ExecuteNonQuery();
-                    }
-
-                }
-
-                connection.Close();
-            }
+	        	using (FbConnection connection = new FbConnection())
+	            {
+	                
+	                FbConnectionStringBuilder exclConStr = new FbConnectionStringBuilder()
+	                {
+	                    Charset = "WIN1251",
+	                    UserID = mySettings.exclUser,
+	                    Password = mySettings.exclPass,
+	                    Database = mySettings.exclBase,
+	                    ServerType = FbServerType.Default
+	                };
+	
+	                connection.ConnectionString = exclConStr.ToString();
+	                connection.Open();
+	
+	                using (FbCommand command = new FbCommand())
+	                {
+	                    command.CommandType = CommandType.Text;
+	                    command.Connection = connection;
+	                    command.CommandText = "DELETE FROM PUBLISH_EXCEPTIONS WHERE id = @id";
+	
+	                    FbParameter param = new FbParameter()
+	                    {
+	                        DbType = DbType.Int32,
+	                        Direction = ParameterDirection.Input,
+	                        ParameterName = "@id"
+	                    };
+	
+	                    command.Parameters.Add(param);
+	
+	                    foreach (int i in ids) {
+	                        param.Value = i;
+	                        command.ExecuteNonQuery();
+	                    }
+	
+	                }
+	
+	                connection.Close();
+	            }
+        	
+        	}
         }
 
         public static ObservableCollection<ExclusionInfo> GetExcludedCases(int vidpr = 0, int stage = 0)
@@ -2845,7 +3149,7 @@ namespace RaionReminder
         	
         }
         
-        private static List<SDPCaseInfo> GetCasesFromSDP(OracleConnection connection, OracleTransaction ot, string SDPLinkName, int case_type, int case_stage, DateTime start_date, DateTime end_date, string judges)
+        private static List<SDPCaseInfo> GetCasesFromSDP(OracleConnection connection, OracleTransaction ot, string SDPLinkName, int case_type, int case_stage, DateTime start_date, DateTime end_date, string judges, bool considerBSRExcude)
         {
             List<SDPCaseInfo> result = new List<SDPCaseInfo>();
             
@@ -2855,50 +3159,50 @@ namespace RaionReminder
 			        switch (case_stage) {
 				
 				        case 113: //Первая инстанция и апелляция
-                            stmt = "SELECT ID, FULL_NUMBER, VALIDITY_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM U1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (VALIDITY_DATE >=:sd) AND (VALIDITY_DATE <= :ed) and VERDICT_DATE is not null AND JUDGE_ID IN {1}";
+                            stmt = "SELECT ID, FULL_NUMBER, VALIDITY_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1), (SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM) FROM U1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (VALIDITY_DATE >=:sd) AND (VALIDITY_DATE <= :ed) and VERDICT_DATE is not null AND JUDGE_ID IN {1} ORDER BY ID";
 				        break;
 				        case 114: //Кассация
-					        stmt = "SELECT ID, FULL_NUMBER, VERDICT_II_DATE, SPEAKER, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM U2_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA  WHERE (id is not null) AND (VERDICT_II_DATE >= :sd) AND (VERDICT_II_DATE <= :ed) AND (VERDICT_II_ID = 50190000) AND SPEAKER in {1}";
+					        stmt = "SELECT ID, FULL_NUMBER, VERDICT_II_DATE, SPEAKER, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1), (SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)  FROM U2_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (id is not null) AND (VERDICT_II_DATE >= :sd) AND (VERDICT_II_DATE <= :ed) AND (VERDICT_II_ID = 50190000) AND SPEAKER in {1} ORDER BY ID";
 				        break;
 				        case 115: //Единый Надзор
-					        stmt = "SELECT ID, proceeding_full_number, protest_verdict_date, presiding_judge, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM u33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA  WHERE (protest_VERDICT_DATE >= :sd) AND (protest_VERDICT_DATE <= :ed) AND (verdict_by_protest = 11050001) AND presiding_judge in {1}";
+					        stmt = "SELECT ID, proceeding_full_number, protest_verdict_date, presiding_judge, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1), (SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)  FROM u33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (protest_VERDICT_DATE >= :sd) AND (protest_VERDICT_DATE <= :ed) AND (verdict_by_protest = 11050001) AND presiding_judge in {1} ORDER BY ID";
 				        break;
 			        }
 		        break;
 		        case 02: //гражданские
 			        switch (case_stage) { 
 				        case 113: //Первая инстанция
-					        stmt = "SELECT ID, CASE_FULL_NUMBER, VALIDITY_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (VALIDITY_DATE >= :sd) AND (VALIDITY_DATE <= :ed) AND JUDGE_ID IN {1}";                   
+					        stmt = "SELECT ID, CASE_FULL_NUMBER, VALIDITY_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1), (SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)  FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (VALIDITY_DATE >= :sd) AND (VALIDITY_DATE <= :ed) AND JUDGE_ID IN {1} ORDER BY ID";                   
                         break;
                         case 1130:
                         //Просили, чтобы показывалось сразу после рассмотрения 
-                        	stmt = "SELECT ID, CASE_FULL_NUMBER, RESULT_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (RESULT_DATE >= :sd) AND (RESULT_DATE <= :ed)  AND JUDGE_ID IN {1}";
+                        	stmt = "SELECT ID, CASE_FULL_NUMBER, RESULT_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1),(SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)  FROM G1_CASE@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (RESULT_DATE >= :sd) AND (RESULT_DATE <= :ed)  AND JUDGE_ID IN {1} ORDER BY ID";
                         case_stage = 113;
                         break;
 				        case 114: //Аппеляция
-					        stmt = "SELECT ID, Z_FULLNUMBER, DRESALT, IDDOC, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM GR2_DELO@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (DRESALT >= :sd) AND (DRESALT <= :ed) AND (IDRESH NOT IN (911000001,911000002,911000003,911000004,911000005,911000006,50440041,50440042,50440043,50440044,50440012,50440013)) and IDDOC in {1}";
+					        stmt = "SELECT ID, Z_FULLNUMBER, DRESALT, IDDOC, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1), (SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)  FROM GR2_DELO@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (DRESALT >= :sd) AND (DRESALT <= :ed) AND (IDRESH NOT IN (911000001,911000002,911000003,911000004,911000005,911000006,50440041,50440042,50440043,50440044,50440012,50440013)) and IDDOC in {1} ORDER BY ID";
 				        break;
 				        case 115: //Кассация
-					        stmt = "SELECT ID, proceeding_full_number, protest_verdict_date, presiding_judge, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM g33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (protest_VERDICT_DATE >= :sd) AND (protest_VERDICT_DATE <= :ed) and presiding_judge in {1}";
+					        stmt = "SELECT ID, proceeding_full_number, protest_verdict_date, presiding_judge, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1), (SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)  FROM g33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (protest_VERDICT_DATE >= :sd) AND (protest_VERDICT_DATE <= :ed) and presiding_judge in {1} ORDER BY ID";
 				        break;
 			        }
 		        break;
 		        case 05: //административные
 			        switch (case_stage) {
 				        case 110: //Первый пересмотр
-					        stmt = "SELECT ID, CASE_NUMBER, DECREE_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM adm1_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (DECREE_DATE >= :sd) AND (DECREE_DATE <= :ed) and JUDGE_ID in {1}"; // AND (adm1_case.DECREE_ID NOT IN (70100005,70100006))
+					        stmt = "SELECT ID, CASE_NUMBER, DECREE_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1), (SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)  FROM adm1_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (DECREE_DATE >= :sd) AND (DECREE_DATE <= :ed) and JUDGE_ID in {1} ORDER BY ID"; // AND (adm1_case.DECREE_ID NOT IN (70100005,70100006))
 				        break;
 				        case 111: //Второй пересмотр
-					        stmt = "SELECT ID, CASE_NUMBER, DECREE_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1)  FROM adm2_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (DECREE_DATE >= :sd) AND (DECREE_DATE <= :ed) and JUDGE_ID in {1}"; // AND (adm2_case.DECREE_ID NOT IN (70030007,70030008))
+					        stmt = "SELECT ID, CASE_NUMBER, DECREE_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1),(SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)   FROM adm2_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (DECREE_DATE >= :sd) AND (DECREE_DATE <= :ed) and JUDGE_ID in {1} ORDER BY ID"; // AND (adm2_case.DECREE_ID NOT IN (70030007,70030008))
 				        break;
 				        case 113: //Первая инстанция после вступления в зак силу
-					        stmt = "SELECT ID, CASE_NUMBER, TAKE_LAW_EFFECT_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM adm_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (TAKE_LAW_EFFECT_DATE >= :sd) AND (TAKE_LAW_EFFECT_DATE <= :ed) and JUDGE_ID in {1}";
+					        stmt = "SELECT ID, CASE_NUMBER, TAKE_LAW_EFFECT_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1),(SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)  FROM adm_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (TAKE_LAW_EFFECT_DATE >= :sd) AND (TAKE_LAW_EFFECT_DATE <= :ed) and JUDGE_ID in {1} ORDER BY ID";
 				        break;
 				       	case 1130://Первая инстанция сразу после рассмотрения
-				        	stmt = "SELECT ID, CASE_NUMBER, DECREE_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM adm_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE (DECREE_DATE >= :sd) AND (DECREE_DATE <= :ed) and JUDGE_ID in {1}";
+				        	stmt = "SELECT ID, CASE_NUMBER, DECREE_DATE, JUDGE_ID, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1),(SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)  FROM adm_case@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA  WHERE (DECREE_DATE >= :sd) AND (DECREE_DATE <= :ed) and JUDGE_ID in {1} ORDER BY ID";
 				        break;
 				        case 115: //Надзор
-					        stmt = "SELECT id, full_number, verdict_date, judge_study_assist_id, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1) FROM a33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA WHERE verdict_date >= :sd AND verdict_date <= :ed and judge_study_assist_id in {1}";
+					        stmt = "SELECT id, full_number, verdict_date, judge_study_assist_id, b.PRPUB, b.ID_DOCUM, (SELECT 1 FROM BSR.TEXT_DOCUM t WHERE t.ID_DOCUM = b.ID_DOCUM AND PRPUB = 3 AND ROWNUM =1), (SELECT de.prich FROM bsr.rub_docum r left join rub_docum_exception de on r.rubrikat = de.vncode WHERE b.id_docum = r.id_docum AND de.prich is not null AND ROWNUM =1), b.p_annot, b.usermod, (SELECT COUNT(*) FROM bsr.IMAGE_DOCUM i WHERE i.ID_DOCUM = b.ID_DOCUM)  FROM a33_proceeding@{0} c LEFT JOIN bsr.bsrp b ON c.ID=b.ID_AGORA  WHERE verdict_date >= :sd AND verdict_date <= :ed and judge_study_assist_id in {1} ORDER BY ID";
 				        break;
 			        }
 		        break;
@@ -2957,6 +3261,22 @@ namespace RaionReminder
                     if (reader[6] != DBNull.Value) info.ready_to_publish = true;
                     else info.ready_to_publish = false;
                     
+                    if (reader[7] != DBNull.Value) {
+                    	info.bsr_excluded = true;
+                    	info.exclude_user = "bsr";
+                    	info.exclude_reason = reader.GetString(7);
+                    }
+                    
+                    if (considerBSRExcude && reader[4] != DBNull.Value && reader.GetInt32(4) == 2) {
+                    	info.bsr_excluded = true;
+                    	info.exclude_user = reader.GetString(9);
+                    	info.exclude_reason = reader.GetString(8);
+                    }
+                    
+                    if (reader.IsDBNull(10) || reader.GetInt32(10) == 0) {
+                    	info.noPDF = true;
+                    }
+                    
                     result.Add(info);
                 }
                 reader.Close();
@@ -2967,76 +3287,118 @@ namespace RaionReminder
             return result;
         }
 
-        private static int _AddToExcluded(int id, string CaseNumber, string message, DateTime datedocum, int vidpr, int stage, string username)
+        private static int _AddToExcluded(int id, string CaseNumber, string message, DateTime datedocum, int vidpr, int stage, string username, bool auto)
         {
             AppSettings mySettings = ((App)System.Windows.Application.Current).mySettings;
             int result = 0;
-            using (FbConnection connection = new FbConnection())
-            {
-                string excl_pass = mySettings.exclPass;
-                string excl_db = mySettings.exclBase;
-                string excl_login = mySettings.exclUser;
-
-                FbConnectionStringBuilder conStr = new FbConnectionStringBuilder()
+            
+            if (!mySettings.ExcludeInBSR) {
+            
+	            using (FbConnection connection = new FbConnection())
+	            {
+	                string excl_pass = mySettings.exclPass;
+	                string excl_db = mySettings.exclBase;
+	                string excl_login = mySettings.exclUser;
+	
+	                FbConnectionStringBuilder conStr = new FbConnectionStringBuilder()
+	                {
+	                    Charset = "WIN1251",
+	                    UserID = excl_login,
+	                    Password = excl_pass,
+	                    Database = excl_db,
+	                    ServerType = FbServerType.Default
+	                };
+	                connection.ConnectionString = conStr.ToString();
+	
+	                connection.Open();
+	
+	                using (FbCommand command = new FbCommand())
+	                {
+	                    command.Connection = connection;
+	                    command.CommandType = CommandType.Text;
+	                    command.CommandText = string.Format("DELETE FROM PUBLISH_EXCEPTIONS WHERE CASE_ID = {0}", id);
+	                    command.ExecuteNonQuery();
+	                }
+	                
+	                
+	                if (message.Length > 255) {
+	                	Logging.Log("Add to excluded",string.Format("Дело {0} Слишком длинная причина исключения. Пришлось обрезать до 255 символов",CaseNumber));
+	                	message = message.Substring(0,255);
+	                }
+	                
+	                if (CaseNumber.Length > 64) {
+	                	Logging.Log("Add to excluded",string.Format("Дело {0} Слишком длинный номер дела. Пришлось обрезать до 64 символов",CaseNumber));
+	                	CaseNumber = CaseNumber.Substring(0,64);
+	                }
+	                
+	                if (username.Length > 255) {
+	                	Logging.Log("Add to excluded",string.Format("Дело {0} Слишком длинное имя пользователя. Пришлось обрезать до 255 символов",CaseNumber));
+	                	username = username.Substring(0,255);
+	                }
+	                
+	                using (FbCommand command = new FbCommand())
+	                {
+	                    command.Connection = connection;
+	                    command.CommandType = CommandType.Text;
+	                    command.CommandText = string.Format("INSERT INTO PUBLISH_EXCEPTIONS (ID,CASE_ID,CASE_NUMBER,REASON,DATEDOCUM,VIDPR,STAGE,FIO) VALUES (GEN_ID(GEN_PUBLISH_EXCEPTIONS_ID, 1),{0},'{1}','{2}',{3},'{4}','{5}','{6}')",
+	                                                        new object[] { id, CaseNumber, message, datedocum.ToString("yyyyMMdd"), vidpr, stage, username});
+	                    command.ExecuteNonQuery();
+	                }
+	
+	                using (FbCommand command = new FbCommand())
+	                {
+	                    command.Connection = connection;
+	                    command.CommandType = CommandType.Text;
+	                    command.CommandText = string.Format("SELECT ID FROM PUBLISH_EXCEPTIONS WHERE CASE_ID = {0}", id);
+	                    result =  (int)command.ExecuteScalar();
+	                }
+	
+	                connection.Close();
+	            }
+            
+            }
+            
+            if (!auto && mySettings.ExcludeInBSR) {
+            	
+            	string bsr_pass = mySettings.bsrPass;
+	            string bsr_db = mySettings.bsrBase;
+	            string bsr_login = mySettings.bsrUser;
+	
+	            string bsrConnStr = "Data Source=" + bsr_db + ";Password=" + bsr_pass + ";User ID=" + bsr_login;
+                
+	            using (OracleConnection connection = new OracleConnection(bsrConnStr))
                 {
-                    Charset = "WIN1251",
-                    UserID = excl_login,
-                    Password = excl_pass,
-                    Database = excl_db,
-                    ServerType = FbServerType.Default
-                };
-                connection.ConnectionString = conStr.ToString();
+                    connection.Open();
 
-                connection.Open();
-
-                using (FbCommand command = new FbCommand())
-                {
-                    command.Connection = connection;
-                    command.CommandType = CommandType.Text;
-                    command.CommandText = string.Format("DELETE FROM PUBLISH_EXCEPTIONS WHERE CASE_ID = {0}", id);
-                    command.ExecuteNonQuery();
-                }
-                
-                
-                if (message.Length > 255) {
-                	Logging.Log("Add to excluded",string.Format("Дело {0} Слишком длинная причина исключения. Пришлось обрезать до 255 символов",CaseNumber));
-                	message = message.Substring(0,255);
-                }
-                
-                if (CaseNumber.Length > 64) {
-                	Logging.Log("Add to excluded",string.Format("Дело {0} Слишком длинный номер дела. Пришлось обрезать до 64 символов",CaseNumber));
-                	CaseNumber = CaseNumber.Substring(0,64);
-                }
-                
-                if (username.Length > 255) {
-                	Logging.Log("Add to excluded",string.Format("Дело {0} Слишком длинное имя пользователя. Пришлось обрезать до 255 символов",CaseNumber));
-                	username = username.Substring(0,255);
-                }
-                
-                using (FbCommand command = new FbCommand())
-                {
-                    command.Connection = connection;
-                    command.CommandType = CommandType.Text;
-                    command.CommandText = string.Format("INSERT INTO PUBLISH_EXCEPTIONS (ID,CASE_ID,CASE_NUMBER,REASON,DATEDOCUM,VIDPR,STAGE,FIO) VALUES (GEN_ID(GEN_PUBLISH_EXCEPTIONS_ID, 1),{0},'{1}','{2}',{3},'{4}','{5}','{6}')",
-                                                        new object[] { id, CaseNumber, message, datedocum.ToString("yyyyMMdd"), vidpr, stage, username});
-                    command.ExecuteNonQuery();
-                }
-
-                using (FbCommand command = new FbCommand())
-                {
-                    command.Connection = connection;
-                    command.CommandType = CommandType.Text;
-                    command.CommandText = string.Format("SELECT ID FROM PUBLISH_EXCEPTIONS WHERE CASE_ID = {0}", id);
-                    result =  (int)command.ExecuteScalar();
-                }
-
-                connection.Close();
+            	
+                     using (OracleCommand command = new OracleCommand())
+                    {
+                        command.CommandType = CommandType.Text;
+                        command.Connection = connection;
+                        command.CommandText = string.Format("UPDATE BSR.BSRP SET PRPUB=2, P_ANNOT=:reason WHERE ID_AGORA={0}",id);
+                      	
+                        OracleParameter op = new OracleParameter(){
+                        	Direction = ParameterDirection.Input,
+                        	ParameterName = ":reason",
+                        	Value = message,
+                        	DbType = DbType.String
+                        };
+                        
+                        command.Parameters.Add(op);
+                        
+                        result = command.ExecuteNonQuery();
+                     }
+                    
+                    
+                    connection.Close();   
+	            }
+            	
             }
 
             return result;
         }
 
-        public static bool AddToExcluded(string SDPLinkname, ExcludeInfo info, bool FirstGrAfterConsideration = false)
+        public static bool AddToExcluded(string SDPLinkname, ExcludeInfo info,  bool FirstGrAfterConsideration = false)
         {
             #region PrepareArguments
 
@@ -3143,7 +3505,7 @@ namespace RaionReminder
                     connection.Close();
 
 
-                DataModel._AddToExcluded(info.item.id, info.item.CaseNumber, info.message, datedocum, info.item.vidpr, info.item.stage, username);
+                DataModel._AddToExcluded(info.item.id, info.item.CaseNumber, info.message, datedocum, info.item.vidpr, info.item.stage, username,false);
             }
 
             return true;
@@ -3507,9 +3869,6 @@ namespace RaionReminder
                 ws.Cells[1, 1] = string.Format("Запрос выполнен {0}",query_time.ToString("dd.MM.yyyy HH:mm:ss"));
                 ws.Cells[2, 1] = string.Format("Неопубликованные дела за период: {0} по {1}", sDate.ToString("dd.MM.yyyy"), eDate.ToString("dd.MM.yyyy"));
                 
-                
-                
-                
                 ws.Cells[3, 1] = string.Format("{0} {1}", vidpr, stage);
 
                 ws.Cells[4, 1] = "Номер";
@@ -3518,6 +3877,7 @@ namespace RaionReminder
                 ws.Cells[4, 4] = "Судья";
                 ws.Cells[4, 5] = "Комментарий";
                 ws.Cells[4, 6] = "Статус";
+                ws.Cells[4, 7] = "PDF";
 
                 int row = 5;
 
@@ -3541,6 +3901,7 @@ namespace RaionReminder
                     ws.Cells[row, 4] = item.Judge;
                     ws.Cells[row, 5] = item.info;
                     ws.Cells[row, 6] = item.docStatus;
+                    ws.Cells[row, 7] = item.pdf;
                     row++;
                     if (++progress % 10 == 0)
                     {
@@ -3567,7 +3928,8 @@ namespace RaionReminder
                 ws.Cells[4, 5] = "Срок публикации";
                 ws.Cells[4, 6] = "Судья";
                 ws.Cells[4, 7] = "Комментарий";
-
+				ws.Cells[4, 8] = "PDF";
+                
                 row = 5;
                 ObservableCollection<PublishedListItem> pub = (ObservableCollection<PublishedListItem>)PublishedList.ItemsSource;
 
@@ -3596,6 +3958,8 @@ namespace RaionReminder
                     }
                     ws.Cells[row, 6] = item.Judge;
                     ws.Cells[row, 7] = item.comment;
+                    ws.Cells[row, 8] = item.pdf;
+                    
                     if (++progress % 10 == 0)
                     {
                         export_worker.ReportProgress((int)(100.0 * progress / overal_count));
@@ -3621,6 +3985,7 @@ namespace RaionReminder
                 ws.Cells[4, 4] = "Причина исключения";
                 ws.Cells[4, 5] = "Кто исключил";
                 ws.Cells[4, 6] = "Статус";
+                ws.Cells[4, 7] = "PDF";
                 row = 5;
 
 
@@ -3634,6 +3999,7 @@ namespace RaionReminder
                     ws.Cells[row, 4] = item.reason;
                     ws.Cells[row, 5] = item.whoExcluded;
                     ws.Cells[row, 6] = item.docStatus;
+                    ws.Cells[row, 7] = item.pdf;
                     if (++progress % 10 == 0)
                     {
                         export_worker.ReportProgress((int)(100.0 * progress / overal_count));

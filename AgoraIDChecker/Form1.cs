@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.OracleClient;
 using System.Drawing;
+using System.Linq.Expressions;
 using System.Text;
 using System.Windows.Forms;
-using System.Data.OracleClient;
+using FirebirdSql.Data.FirebirdClient;
+using ListViewSorter;
 
 namespace AgoraIDChecker
 {
@@ -27,7 +31,7 @@ namespace AgoraIDChecker
 			if (show)
 			{
 				groupBox1.Enabled = false;
-				tabControl1.Enabled = false;
+				tabControl.Enabled = false;
 				Size ps = inProgressPanel.Size;
 				Size fs = this.Size;
 				cancelButton.Enabled = true;
@@ -39,7 +43,7 @@ namespace AgoraIDChecker
 			else
 			{
 				groupBox1.Enabled = true;
-				tabControl1.Enabled = true;
+				tabControl.Enabled = true;
 				inProgressPanel.Hide();
 			}
 		}
@@ -93,6 +97,26 @@ namespace AgoraIDChecker
 		{
 			public SearchParam sp;
 			public List<JudgesResultElement> elems;
+		}
+		
+		private struct ExclusionSearchParam{
+			public SearchParam bsr;
+			public SearchParam excl;
+		}
+		
+		private struct ExclusionSyncParam{
+			public SearchParam sp;
+			public List<ExclusionElement> elems;
+		}
+		
+		private struct ExclusionElement {
+			public int id; //agora_id
+			public string number; // case number
+			public string bsr_reason; //причина исключения в БСР
+			public string ext_reason; //причина исключения в служебной БД
+			public string FIO; //кто запретил
+			public bool inBSR; //дело загружено в БСР
+			public DateTime date; //дата рассмотрения
 		}
 
 		private void SameNumbersSearchButton_Click(object sender, EventArgs e)
@@ -269,6 +293,11 @@ namespace AgoraIDChecker
 			if (JudgesFixWorker.IsBusy)
 			{
 				JudgesFixWorker.CancelAsync();
+			}
+			
+			if (ExclusionsSearchWorker.IsBusy) 
+			{
+				ExclusionsSearchWorker.CancelAsync();
 			}
 		}
 
@@ -1041,12 +1070,259 @@ namespace AgoraIDChecker
         
         #endregion
 		
+        
+        #region Вкладка 4
+        
+        void ExclusionsSearchWorkerDoWork(object sender, DoWorkEventArgs e)
+        {
+        	SearchParam bsr_db = ((ExclusionSearchParam)e.Argument).bsr;
+        	SearchParam ext_db = ((ExclusionSearchParam)e.Argument).excl;
+        	
+        	OracleConnectionStringBuilder connStr = new OracleConnectionStringBuilder();
+			connStr.DataSource = bsr_db.db;
+			connStr.UserID = bsr_db.login;
+			connStr.Password = bsr_db.pass;
+			
+			FbConnectionStringBuilder exclConStr = new FbConnectionStringBuilder()
+            {
+                Charset = "WIN1251",
+                UserID = ext_db.login,
+                Password = ext_db.pass,
+                Database = ext_db.db,
+                ServerType = FbServerType.Default
+            };
+			
+			List<ExclusionElement> result = new List<Form1.ExclusionElement>();
+			Hashtable ext_exclusions = new Hashtable();
+			
+			try
+			{
+				
+				
+            	
+	            using (FbConnection connection = new FbConnection(exclConStr.ToString()))
+	            {
+	                connection.Open();
+	
+	                using (FbCommand command = new FbCommand())
+	                {
+	                    command.Connection = connection;
+	                    command.CommandType = CommandType.Text;
+	                    command.CommandText = "SELECT CASE_ID, CASE_NUMBER, REASON, FIO FROM PUBLISH_EXCEPTIONS";
+	
+	                    FbDataReader reader = command.ExecuteReader();
+	                    while (reader.Read())
+	                    {
+	                        
+	                    	ExclusionElement ee = new ExclusionElement(){
+	                    		id = reader.GetInt32(0),
+	                    		number = reader.GetString(1),
+	                    		ext_reason = reader.GetString(2),
+	                    		bsr_reason = null,
+	                    		FIO = reader.GetString(3)
+	                    	};
+	                    	
+	                    	
+	                    	if (ee.FIO == "bsr") continue; //Автоисключения
+	                    	
+	                        ext_exclusions.Add(ee.id,ee);
+	                        
+	                        if (ExclusionsSearchWorker.CancellationPending) return;
+	                    }
+	                }
+	
+	                connection.Close();
+	            }
+	            
+	            using (OracleConnection conn = new OracleConnection(connStr.ToString())) {
+	            
+	            	conn.Open();
+	            	
+	            	using (OracleCommand command = new OracleCommand()){
+	            		command.Connection = conn;
+	            		command.CommandType = CommandType.Text;
+	            		command.CommandText = "SELECT ID_AGORA, NUMDOCUM, DATEDOCUM, PRPUB, P_ANNOT, USERMOD FROM BSR.BSRP WHERE ID_AGORA = :id AND DATEDOCUM >= :startDate AND DATEDOCUM <= :endDate";
+	            		
+	            		OracleParameter id = new OracleParameter() {
+	            			DbType = DbType.Int32,
+	            			Direction = ParameterDirection.Input,
+	   						ParameterName = ":id"
+	            		};
+	            		
+	            		OracleParameter sd = new OracleParameter() {
+	            			DbType = DbType.Date,
+	            			Direction = ParameterDirection.Input,
+	            			ParameterName = ":startDate",
+	            			Value = bsr_db.start
+	            		};
+	            		
+	            		OracleParameter ed = new OracleParameter() {
+	            			DbType = DbType.Date,
+	            			Direction = ParameterDirection.Input,
+	            			ParameterName = ":endDate",
+	            			Value = bsr_db.end
+	            		};
+	            		
+	            		command.Parameters.Add(id);
+	            		command.Parameters.Add(sd);
+	            		command.Parameters.Add(ed);
+	            		
+	            		ArrayList keys = new ArrayList();
+	            		keys.AddRange(ext_exclusions.Keys);
+	            		
+	            		foreach (int elem in keys) {
+	            			id.Value = ((ExclusionElement)ext_exclusions[elem]).id;
+		            		OracleDataReader reader = command.ExecuteReader();
+		            		
+		            		while (reader.Read()) {
+		            			int case_id = reader.GetInt32(0);
+		            			string case_number = reader.GetString(1);
+		            			DateTime dt = reader.GetDateTime(2);
+		            			
+		            			int status = 0;
+		            			if (!reader.IsDBNull(3)) {
+		            				status = reader.GetInt32(3);
+		            			}
+		            			
+		            			string reason = "";
+		            			if (!reader.IsDBNull(4) && status != 0) {
+		            				reason = reader.GetString(4);
+		            			}
+		            				
+		            			string user = reader.GetString(5);	
+		            			
+		            			ExclusionElement eel = ((ExclusionElement)ext_exclusions[case_id]);
+		            			eel.date = dt;
+		            			
+		            			if (status == 2 || status == 0) {
+		            				eel.bsr_reason = reason;
+		            				eel.inBSR = true;
+		            			}
+		            			
+		            			ext_exclusions[case_id] = eel;
+		            				
+		            			if (ExclusionsSearchWorker.CancellationPending) return;	            			
+		            		}
+		            		
+		            		reader.Close();
+		            		
+	            		}
+	            		
+	            	}
+	            	
+	            	conn.Close();
+	            }
+				
+	            ArrayList ks = new ArrayList();
+	            ks.AddRange(ext_exclusions.Keys);
+	            ks.Sort();
+	            foreach (int element in ks) {
+	            	if (((ExclusionElement)ext_exclusions[element]).inBSR) {
+	            		result.Add((ExclusionElement)ext_exclusions[element]);
+	            	}
+	            }
+	            e.Result = result;
+				
+			} catch (Exception ex) {
+				MessageBox.Show("Ошибка: " + ex.Message);
+				e.Result = result;
+			}
+			
+			
+
+        }
+        
+        List<ExclusionElement> exclusions = new List<Form1.ExclusionElement>();
+        
+        void FillExclusionsList() {
+        	
+        	ExclusionsList.BeginUpdate();
+        	ExclusionsList.Items.Clear();
+			ExclusionsList.Sorting = SortOrder.None;
+
+				foreach (ExclusionElement item in exclusions)
+				{
+					ListViewItem lvi = new ListViewItem()
+					{
+						Text = item.number,
+						Tag = item,
+						Checked = true
+					};
+					
+					lvi.SubItems.Add(item.date.ToShortDateString());
+					
+					if (item.bsr_reason == null) {
+						lvi.SubItems.Add("Отсутствует");
+					} else {
+						
+						lvi.SubItems.Add(item.bsr_reason);
+					
+					}
+					
+					if (item.ext_reason == null) {
+						lvi.SubItems.Add("Отсутствует");
+					} else {
+						lvi.SubItems.Add(item.ext_reason);
+					}
+					
+					lvi.SubItems.Add(item.FIO);
+					
+
+					ExclusionsList.Items.Add(lvi);
+
+				}
+				ExclusionsList.Sorting = SortOrder.Ascending;
+				ExclusionsList.EndUpdate();
+        	
+        }
+        
+        
+        void ExclusionsSearchWorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+        	if (e.Result != null)
+			{
+        		exclusions = (List<ExclusionElement>)e.Result;
+        		FillExclusionsList();
+			}
+			InProgressPanelToggle(false);	
+       }
+         
+
+        void ExclusionSyncSearchButtonClick(object sender, EventArgs e)
+        {
+        	InProgressPanelToggle(true);
+        	
+        	ExclusionSearchParam p = new ExclusionSearchParam(){
+        		bsr = new SearchParam() {
+        			db = oraBase.Text,
+					login = oraLogin.Text,
+					pass = oraPass.Text,
+					start = startDate.Value,
+					end = endDate.Value
+        		},
+        		excl = new SearchParam() {
+        			db = exclBase.Text,
+        			login = exclUser.Text,
+        			pass = exclPass.Text
+        		}
+        	};
+        	
+        	ExclusionsSearchWorker.RunWorkerAsync(p);
+        	
+        }
+         
+        #endregion
+        
+        
 		
 		private void Form1_Load(object sender, EventArgs e)
 		{
 			oraBase.Text = Properties.Settings.Default.oraBase;
 			oraLogin.Text = Properties.Settings.Default.oraLogin;
 			startDate.Value = Properties.Settings.Default.startDate;
+			
+			lvwColumnSorter = new ListViewColumnSorter();
+			ExclusionsList.ListViewItemSorter = lvwColumnSorter;
 		}
 
 		private void Form1_FormClosed(object sender, FormClosedEventArgs e)
@@ -1056,12 +1332,205 @@ namespace AgoraIDChecker
 			Properties.Settings.Default.startDate = startDate.Value;
 			Properties.Settings.Default.Save();
 		}
+        
+       
+        
+        void CheckAllExclButtonClick(object sender, EventArgs e)
+        {
+        	ExclusionsList.BeginUpdate();
+        	foreach (ListViewItem element in ExclusionsList.Items) {
+        		element.Checked = true;
+        	}
+        	ExclusionsList.EndUpdate();
+        }
+        
+        void UncheckAllExclButtonClick(object sender, EventArgs e)
+        {
+        	ExclusionsList.BeginUpdate();
+        	foreach (ListViewItem element in ExclusionsList.Items) {
+        		element.Checked = false;
+        	}
+        	ExclusionsList.EndUpdate();
+        }
+        
+        void CheckBSRExclButtonClick(object sender, EventArgs e)
+        {
+        	ExclusionsList.BeginUpdate();
+        	foreach (ListViewItem element in ExclusionsList.Items) {
+        		if (((ExclusionElement)element.Tag).bsr_reason != null) 
+        		{
+        			element.Checked = true;
+        		} else {
+        			element.Checked = false;
+        		}
+        	}
+        	ExclusionsList.EndUpdate();
+        }
+        
+        void CheckServiceBDExclButtonClick(object sender, EventArgs e)
+        {
+        	ExclusionsList.BeginUpdate();
+        	foreach (ListViewItem element in ExclusionsList.Items) {
+        		if (((ExclusionElement)element.Tag).ext_reason != null) 
+        		{
+        			element.Checked = true;
+        		} else {
+        			element.Checked = false;
+        		}
+        	}
+        	ExclusionsList.EndUpdate();
+        }
+        
+            
+        void HideCheckedExclButtonCheckedChanged(object sender, EventArgs e)
+        {
+        	if (!HideCheckedExclButton.Checked) return;
+        	ExclusionsList.BeginUpdate();
+        	foreach (ListViewItem element in ExclusionsList.Items) {
+        		if (!element.Checked)
+        		{
+        			element.Remove();
+        		}
+        	}
+        	ExclusionsList.EndUpdate();
+        }
+        
+        
+        
+        
+        void ShowAllExclButtonCheckedChanged(object sender, EventArgs e)
+        {
+        	if (!ShowAllExclButton.Checked) return;
+        	FillExclusionsList();
+        }
+        
+        
+        private ListViewColumnSorter lvwColumnSorter;
+        
+        void ExclusionsListColumnClick(object sender, ColumnClickEventArgs e)
+        {
+        	ListView myListView = (ListView)sender;
 
-
+		   // Determine if clicked column is already the column that is being sorted.
+		   if ( e.Column == lvwColumnSorter.SortColumn )
+		   {
+		   // Reverse the current sort direction for this column.
+		   		if (lvwColumnSorter.Order == SortOrder.Ascending)
+		    	{
+		    		lvwColumnSorter.Order = SortOrder.Descending;
+		    	}
+		    	else
+		    	{
+		    		lvwColumnSorter.Order = SortOrder.Ascending;
+		    	}
+		  	}
+		   	else
+		   	{
+		    // Set the column number that is to be sorted; default to ascending.
+		    	lvwColumnSorter.SortColumn = e.Column;
+		    	lvwColumnSorter.Order = SortOrder.Ascending;
+		   }
 		
-	}
+		   // Perform the sort with these new sort options.
+		   myListView.Sort();
+		   
+		}
+        
+        void ExclusionSyncFixButtonClick(object sender, EventArgs e)
+        {
+        	List<ExclusionElement> elems = new List<Form1.ExclusionElement>(ExclusionsList.CheckedItems.Count);
+        	foreach (ListViewItem item in ExclusionsList.CheckedItems) {
+        		elems.Add((ExclusionElement)item.Tag);
+        	}
+        	
+        	InProgressPanelToggle(true);
+        	
+        	SearchParam sp = new SearchParam()
+			{
+				db = oraBase.Text,
+				login = oraLogin.Text,
+				pass = oraPass.Text,
+				start = startDate.Value,
+				end = endDate.Value
+			};
+        	
+        	ExclusionSyncParam param = new ExclusionSyncParam();
+        	param.sp = sp;
+        	param.elems = elems;
+        	
+        	ExclusionsSyncWorker.RunWorkerAsync(param);
+        }
+        
+        void ExclusionsSyncWorkerDoWork(object sender, DoWorkEventArgs e)
+        {
+        	SearchParam param = ((ExclusionSyncParam)e.Argument).sp;
+        	List<ExclusionElement> elems = ((ExclusionSyncParam)e.Argument).elems;
+        	
+        	OracleConnectionStringBuilder connStr = new OracleConnectionStringBuilder();
+			connStr.DataSource = param.db;
+			connStr.UserID = param.login;
+			connStr.Password = param.pass;
 
-	
+			try
+			{
+
+				using (OracleConnection conn = new OracleConnection(connStr.ConnectionString))
+				{
+					conn.Open();
+
+					using (OracleCommand comm = new OracleCommand())
+					{
+						comm.Connection = conn;
+						comm.CommandType = CommandType.Text;
+						comm.CommandText = "UPDATE bsr.bsrp SET PRPUB = 2, P_ANNOT = :reason WHERE ID_AGORA = :id";
+
+						OracleParameter idPar = new OracleParameter()
+						{
+							Direction = ParameterDirection.Input,
+							OracleType = OracleType.Number,
+							ParameterName = ":id"
+						};
+
+						comm.Parameters.Add(idPar);
+
+						OracleParameter reasonPar = new OracleParameter()
+						{
+							Direction = ParameterDirection.Input,
+							OracleType = OracleType.VarChar,
+							ParameterName = ":reason"
+						};
+
+						comm.Parameters.Add(reasonPar);
+
+						foreach (ExclusionElement item in elems)
+						{
+							if (FixWorker.CancellationPending) break;
+							idPar.Value = item.id;
+							reasonPar.Value = item.ext_reason;
+							comm.ExecuteNonQuery();
+						}
+					}
+
+					conn.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Ошибка: " + ex.Message);
+			}
+        }
+        
+        void ExclusionsSyncWorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+        	ExclusionSyncSearchButtonClick(null,null);
+        }
+        
+        void ExclusionsListItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+        	if (ExclusionsList.CheckedIndices.Count > 0) ExclusionSyncFixButton.Enabled = true;
+			else ExclusionSyncFixButton.Enabled = false;
+        }
+	}
 	
 	
 }

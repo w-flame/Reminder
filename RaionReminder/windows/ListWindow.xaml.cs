@@ -304,7 +304,7 @@ namespace RaionReminder
         private void DenyPublication_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
             if (notPublishedList.SelectedItems.Count != 0)
             {
-                if (mySettings.DenyOnlyInBSR)
+                if (mySettings.AddManualBSRExclusions)
                 {
                     e.CanExecute = true;
                     foreach (NotPublishedListItem item in notPublishedList.SelectedItems)
@@ -351,23 +351,55 @@ namespace RaionReminder
 
         private void RemoveExcluded_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (MessageBox.Show("Удалить дело(-а) из списка исключений?\r\nПримечание: автоматически исключаемые дела всё равно вернутся в этот список", "Разрешить публикацию", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+           bool ExcludeInBSR = Properties.Settings.Default.ExcludeInBSR;
+        	bool BSRExclusions = false;
+        	
+        	int[] ids = new int[ExcludedList.SelectedItems.Count];
+        	for (int j=0;j<ids.Length;j++) {
+        		ids[j] = 0;
+        	}
+            int i = 0;
+            foreach (ExcludedListItem item in ExcludedList.SelectedItems)
             {
-                int[] ids = new int[ExcludedList.SelectedItems.Count];
-                int i = 0;
-                foreach (ExcludedListItem item in ExcludedList.SelectedItems)
-                {
-                    ids[i] = item.excludeId;
-                    i++;
-                }
+            	if (item.BSRAuto) { 
+            		BSRExclusions = true; 
+            	}
+            	else {
+	            	if (ExcludeInBSR) {
+	            		ids[i] = item.id;
+	            	} else {
+	            		ids[i] = item.excludeId;
+	            	}
+	                i++;
+            	}
+                
+            }
 
+            string msg = "Удалить дело(-а) из списка исключений?";
+            if (ExcludeInBSR) {
+            	if (BSRExclusions) {
+            		msg += "\r\nВНИМАНИЕ! Вы выбрали одно или несколько дел автоматически исключённых в БД БСР. Программа не сможет отменить запрет публикации для данных дел.";
+            	}
+            } else {
+            	msg = "Удалить дело(-а) из списка исключений?\r\nПримечание: автоматически исключаемые дела всё равно вернутся в этот список";
+            }
+            
+        	if (MessageBox.Show(msg, "Разрешить публикацию", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
                 try
                 {
-                    DataModel.RemoveFromExcluded(ids);
+                    DataModel.RemoveFromExcluded(ids,ExcludeInBSR);
 
-                    while (ExcludedList.SelectedItems.Count>0)
+                    MessageBox.Show(String.Format("Из исключений удалено {0} дел",i),"Успех",MessageBoxButton.OK);
+                    
+                    int j = 0;
+                    while (j<ExcludedList.SelectedItems.Count)
                     {
-                        ((ObservableCollection<ExcludedListItem>)ExcludedList.ItemsSource).Remove((ExcludedListItem)ExcludedList.SelectedItems[0]);
+                    	if (!(((ExcludedListItem)ExcludedList.SelectedItems[0]).BSRAuto && ExcludeInBSR)) {
+                    		((ObservableCollection<ExcludedListItem>)ExcludedList.ItemsSource).Remove((ExcludedListItem)ExcludedList.SelectedItems[0]);
+                    	} else {
+                    		j++;
+                    	}
                     }
 
                 }
