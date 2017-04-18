@@ -775,7 +775,12 @@ namespace RaionReminder
 
         private void DenyPublication_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            if (exclude_worker.IsBusy) e.CanExecute = false;
+        	if (!can_exclude) {
+        		e.CanExecute = false;
+        		return;
+        	}
+        	
+        	if (exclude_worker.IsBusy) e.CanExecute = false;
             else if (this.UnpublishedListBox.SelectedIndex != -1)
             {
                 if (mySettings.AddManualBSRExclusions)

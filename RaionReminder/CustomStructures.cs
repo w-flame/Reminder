@@ -1977,7 +1977,7 @@ namespace RaionReminder
 			                            id = 0,
 			                            case_id = item.id,
 			                            number = item.number,
-			                            reason = oraReader.GetString(3),
+			                            reason = !oraReader.IsDBNull(3) ? oraReader.GetString(3):"Причина не указана",
 			                            date = oraReader.GetDateTime(5),
 			                            vidpr = item.vidpr,
 			                            stage = item.stage,
@@ -2022,8 +2022,9 @@ namespace RaionReminder
                             		pdf = "+";
                             	}
                             }
+                            pdfReader.Close();
                         	
-                        	
+                            
                         	//Проверим вариант, когда дело опубликовано и находится в исключениях одновременно
                             if (exclusions[item.id] != null)
                             {
@@ -2088,6 +2089,8 @@ namespace RaionReminder
                                     
                                 }
                                 
+                                docsReader.Close();
+                                
                                 oraId2.Value = OracleCaseId;
                                 OracleDataReader pdfReader = oraPDFCommand.ExecuteReader();
                                 if(pdfReader.HasRows) {
@@ -2097,6 +2100,7 @@ namespace RaionReminder
                                 		item.pdf = "+";
                                 	}
                                 }
+                                pdfReader.Close();
                             }
                             
                             
@@ -2192,6 +2196,7 @@ namespace RaionReminder
                         }   
 
                     }
+                    reader.Close();
 
                 }
 
@@ -2400,7 +2405,12 @@ namespace RaionReminder
                             
                             if (cs.vidpr == 2 && cs.stage == 113) //Первая гражданская инстанция. Будем отсеивать материалы 9- и М-
                             {
-                                string case_type = cs.number.Substring(0, 1);
+                            	if (cs.number == null || cs.number == "") {
+                            		Logging.Log("Case with no number",cs.id.ToString());
+                            		continue;
+                            	}
+                            	
+                            	string case_type = cs.number.Substring(0, 1);
                                 if (case_type == "9" || case_type == "М")
                                 {
                                     //Нашли материал, решаем, что с ним делать
@@ -3270,7 +3280,7 @@ namespace RaionReminder
                     if (considerBSRExcude && reader[4] != DBNull.Value && reader.GetInt32(4) == 2) {
                     	info.bsr_excluded = true;
                     	info.exclude_user = reader.GetString(9);
-                    	info.exclude_reason = reader.GetString(8);
+                    	info.exclude_reason = !reader.IsDBNull(8) ? reader.GetString(8) : "Причина не указана";
                     }
                     
                     if (reader.IsDBNull(10) || reader.GetInt32(10) == 0) {
